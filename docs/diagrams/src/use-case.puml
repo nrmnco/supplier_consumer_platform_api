@@ -1,0 +1,134 @@
+@startuml Use Case Diagram
+
+' How to read and write:
+' https://plantuml.com/en-dark/use-case-diagram
+
+left to right direction
+
+skinparam packageStyle rectangle
+
+' Actor styling
+skinparam actor {
+    BackgroundColor<<Staff>> LightBlue
+    BorderColor<<Staff>> Blue
+    BackgroundColor<<Manager>> LightGreen
+    BorderColor<<Manager>> Green
+    BackgroundColor<<Owner>> LightCoral
+    BorderColor<<Owner>> Red
+}
+
+skinparam usecase {
+    BackgroundColor White
+    BorderColor Black
+}
+
+' Consumer Actors (Restaurant/Hotel staff)
+actor "Consumer Staff" as ConsumerStaff <<Staff>>
+actor "Consumer Manager" as ConsumerManager <<Manager>>
+actor "Consumer Owner" as ConsumerOwner <<Owner>> 
+
+' Supplier Actors
+actor "Supplier Staff" as SalesRep <<Staff>>
+actor "Supplier Manager" as SupplierManager <<Manager>>
+actor "Supplier Owner" as SupplierOwner <<Owner>>
+
+' Actor inheritance relationships - Consumer side
+ConsumerManager <|-right- ConsumerOwner
+ConsumerStaff <|-right- ConsumerManager
+
+' Actor inheritance relationships - Supplier side
+SupplierManager <|-right- SupplierOwner
+SalesRep <|-right- SupplierManager
+
+rectangle "Platform" {  
+    ' Consumer Use Cases
+    rectangle "Consumer Features" {
+        usecase "Request Link to Supplier" as RequestLink
+        usecase "Browse Catalog" as BrowseCatalog
+        usecase "Place Order" as PlaceOrder
+        usecase "Track Order" as TrackOrder
+        usecase "Submit Complaint" as SubmitComplaint
+        usecase "Chat with Supplier" as ChatWithSupplier
+
+        ' Owner level
+        usecase "Create Manager Account" as CreateManagerAccountConsumer
+        usecase "Delete Manager Account" as RemoveManagerAccountConsumer
+        usecase "Create Staff Account" as CreateConsumerAccountConsumer
+        usecase "Delete Staff Account" as RemoveConsumerAccountConsumer
+        usecase "Delete Company Account" as DeleteConsumerAccountConsumer
+    }
+
+    ' Supplier Use Cases
+    rectangle "Supplier Features" {
+        ' Sales Rep level
+        usecase "Approve/Deny Link Request" as ApproveDenyLink
+        usecase "Handle First-Line Complaint" as HandleComplaint
+        usecase "Escalate Complaint" as EscalateComplaint
+        usecase "Chat with Consumer" as ChatWithConsumer
+        
+        ' Manager level
+        usecase "Manage Catalog" as ManageCatalog
+        usecase "Manage Inventory" as ManageInventory
+        usecase "Accept/Reject Order" as AcceptRejectOrder
+        usecase "Resolve Escalated Complaint" as ResolveComplaint
+
+        ' Owner level
+        usecase "Create Manager Account" as CreateManagerAccount
+        usecase "Delete Manager Account" as RemoveManagerAccount
+        usecase "Create Staff Account" as CreateSalesRepAccount
+        usecase "Delete Staff Account" as RemoveSalesRepAccount
+        usecase "Delete Company Account" as DeleteSupplierAccount
+    }
+}
+
+' Positioning 
+' ChatWithSupplier -up-> ChatWithConsumer
+' CreateSalesRepAccount -left-> RequestLink
+' CreateSalesRepAccount -left-> ManageCatalog
+
+' Consumer Staff connections (Blue)
+ConsumerStaff -[#Blue]up-> RequestLink
+ConsumerStaff -[#Blue]up-> BrowseCatalog
+ConsumerStaff -[#Blue]up-> PlaceOrder
+ConsumerStaff -[#Blue]up-> TrackOrder
+ConsumerStaff -[#Blue]up-> SubmitComplaint
+ConsumerStaff -[#Blue]up-> ChatWithSupplier
+
+' Consumer Manager connections (Green - inherits Consumer Staff capabilities)
+ConsumerManager -[#Green]up-> CreateConsumerAccountConsumer
+ConsumerManager -[#Green]up-> RemoveConsumerAccountConsumer
+
+' Consumer Owner connections (Red - inherits Consumer Manager capabilities)
+ConsumerOwner -[#Red]up-> CreateManagerAccountConsumer
+ConsumerOwner -[#Red]up-> RemoveManagerAccountConsumer
+ConsumerOwner -[#Red]up-> DeleteConsumerAccountConsumer
+
+' Sales Representative connections (Blue)
+SalesRep -[#Blue]-> ApproveDenyLink
+SalesRep -[#Blue]-> HandleComplaint
+SalesRep -[#Blue]-> EscalateComplaint
+SalesRep -[#Blue]-> ChatWithConsumer
+SalesRep -[#Blue]-> AcceptRejectOrder
+
+' Supplier Manager connections (Green - inherits Sales Rep capabilities)
+SupplierManager -[#Green]-> ManageCatalog
+SupplierManager -[#Green]-> ManageInventory
+SupplierManager -[#Green]-> ResolveComplaint
+
+' Supplier Owner connections (Red - inherits Supplier Manager capabilities)
+SupplierOwner -[#Red]-> CreateManagerAccount
+SupplierOwner -[#Red]-> RemoveManagerAccount
+SupplierOwner -[#Red]-> CreateSalesRepAccount
+SupplierOwner -[#Red]-> RemoveSalesRepAccount
+SupplierOwner -[#Red]-> DeleteSupplierAccount
+
+' extensions
+ApproveDenyLink ..> RequestLink : <<extend>>
+ChatWithConsumer -- ChatWithSupplier
+ChatWithConsumer .left.> ApproveDenyLink : <<extend>>
+EscalateComplaint .left.> HandleComplaint : <<extend>>
+EscalateComplaint .right.> ResolveComplaint : <<include>>
+SubmitComplaint ..> HandleComplaint : <<include>>
+AcceptRejectOrder -up- PlaceOrder
+@enduml
+

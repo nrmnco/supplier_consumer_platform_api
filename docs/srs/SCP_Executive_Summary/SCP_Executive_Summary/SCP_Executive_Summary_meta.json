@@ -1,0 +1,267 @@
+{
+  "table_of_contents": [
+    {
+      "title": "Executive Summary",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          90.0,
+          76.75042724609375
+        ],
+        [
+          300.3253173828125,
+          76.75042724609375
+        ],
+        [
+          300.3253173828125,
+          102.67041015625
+        ],
+        [
+          90.0,
+          102.67041015625
+        ]
+      ]
+    },
+    {
+      "title": "Purpose",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          90.0,
+          189.78668212890625
+        ],
+        [
+          137.5479278564453,
+          189.78668212890625
+        ],
+        [
+          137.5479278564453,
+          203.7066650390625
+        ],
+        [
+          90.0,
+          203.7066650390625
+        ]
+      ]
+    },
+    {
+      "title": "Scope",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          89.947265625,
+          292.9866943359375
+        ],
+        [
+          124.51603698730469,
+          292.9866943359375
+        ],
+        [
+          124.51603698730469,
+          306.9067077636719
+        ],
+        [
+          89.947265625,
+          306.9067077636719
+        ]
+      ]
+    },
+    {
+      "title": "Stakeholders",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          89.349609375,
+          425.390625
+        ],
+        [
+          165.7025146484375,
+          425.390625
+        ],
+        [
+          165.7025146484375,
+          439.3866882324219
+        ],
+        [
+          89.349609375,
+          439.3866882324219
+        ]
+      ]
+    },
+    {
+      "title": "Core MVP (Launch Scope)",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          89.349609375,
+          558.1867065429688
+        ],
+        [
+          238.88275146484375,
+          558.1867065429688
+        ],
+        [
+          238.88275146484375,
+          573.1171875
+        ],
+        [
+          89.349609375,
+          573.1171875
+        ]
+      ]
+    },
+    {
+      "title": "In\tScope\tfor\tMVP:",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          88.453125,
+          606.6511688232422
+        ],
+        [
+          173.0649871826172,
+          606.6511688232422
+        ],
+        [
+          173.0649871826172,
+          617.6911773681641
+        ],
+        [
+          88.453125,
+          617.6911773681641
+        ]
+      ]
+    },
+    {
+      "title": "Technology Stack",
+      "heading_level": null,
+      "page_id": 1,
+      "polygon": [
+        [
+          88.751953125,
+          172.7467041015625
+        ],
+        [
+          190.951171875,
+          172.7467041015625
+        ],
+        [
+          190.951171875,
+          186.66668701171875
+        ],
+        [
+          88.751953125,
+          186.66668701171875
+        ]
+      ]
+    },
+    {
+      "title": "Recommended Tools",
+      "heading_level": null,
+      "page_id": 1,
+      "polygon": [
+        [
+          89.6484375,
+          305.2266845703125
+        ],
+        [
+          211.83062744140625,
+          305.2266845703125
+        ],
+        [
+          211.83062744140625,
+          319.1466979980469
+        ],
+        [
+          89.6484375,
+          319.1466979980469
+        ]
+      ]
+    }
+  ],
+  "page_stats": [
+    {
+      "page_id": 0,
+      "text_extraction_method": "pdftext",
+      "block_counts": [
+        [
+          "Span",
+          95
+        ],
+        [
+          "Line",
+          30
+        ],
+        [
+          "ListItem",
+          17
+        ],
+        [
+          "SectionHeader",
+          6
+        ],
+        [
+          "Text",
+          4
+        ],
+        [
+          "ListGroup",
+          3
+        ]
+      ],
+      "block_metadata": {
+        "llm_request_count": 0,
+        "llm_error_count": 0,
+        "llm_tokens_used": 0,
+        "previous_text": "",
+        "previous_type": "",
+        "previous_order": 0
+      }
+    },
+    {
+      "page_id": 1,
+      "text_extraction_method": "pdftext",
+      "block_counts": [
+        [
+          "Span",
+          61
+        ],
+        [
+          "Line",
+          19
+        ],
+        [
+          "ListItem",
+          8
+        ],
+        [
+          "Text",
+          8
+        ],
+        [
+          "SectionHeader",
+          2
+        ],
+        [
+          "ListGroup",
+          2
+        ]
+      ],
+      "block_metadata": {
+        "llm_request_count": 0,
+        "llm_error_count": 0,
+        "llm_tokens_used": 0,
+        "previous_text": "",
+        "previous_type": "",
+        "previous_order": 0
+      }
+    }
+  ],
+  "debug_data_path": "debug_data/SCP_Executive_Summary"
+}

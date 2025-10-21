@@ -1,0 +1,160 @@
+@startuml Information Engineering Diagram
+
+' How to read and write:
+' https://plantuml.com/ie-diagram
+
+/'skinparam linetype ortho'/
+
+' Entities
+
+entity Users {
+    * user_id : number <<generated>> 
+    * company_id : number <<FK>>
+    
+    status : enum {active, suspended}
+    
+    first_name : string
+    last_name : string
+    phone_number : string
+    
+    email : string
+    password : string
+    
+    role : enum {Owner, Manager, Staff}
+    
+    createdAt : datetime
+    locale : enum {ru, en, kz}
+}
+
+entity Companies {
+    * company_id : number <<generated>>
+    
+    status : enum {active, suspended} 
+    
+    name : string
+    description : string
+    logo_url : string
+    location : string // or maybe city_id? 
+    type : enum {supplier, consumer}
+}
+
+entity Products {
+    * products_id : number <<generated>>
+    * company_id : number <<FK>>
+    
+    name : string
+    description : string
+    picture_url : list<string>
+    stock : number 
+    
+    retail_price : number
+    threshold : number
+    bulk_price : number
+    
+    minimum_order : number
+    unit : string
+    
+    /'UNUSED'/
+    /'avg_rating : number '/
+}
+
+entity Linkings {
+    * linking_id : number <<generated>>
+    consumer_company_id : number <<FK>>
+    supplier_company_id : number <<FK>>
+    
+    requested_by_user_id : number <<FK>> /'consumer staff who sent'/
+    responded_by_user_id : number <<FK>> /'supplier staff who responed'/
+    assigned_salesman_id : number <<FK>> /'by default it is a responder'/
+    
+    status : enum {accepted, pending, rejected, unlinked}
+    message : string /'optional'/
+    createdAt : datetime
+    updatedAt : datetime
+}
+
+entity Orders {
+    * order_id : number <<generated>>
+    * linking_id : number <<FK>>
+    consumer_staff_id : number <<FK>> /'who placed an order'/
+    
+    total_price : number
+    
+    status : enum {created, processing, shipping, completed}
+} 
+
+entity OrderProducts {
+    * order_id : number <<FK>>
+    * product_id : number <<FK>>
+    product_quantity : number
+    product_price : number /' price for single unit '/
+}
+
+entity Chats {
+    * chat_id : number <<generated>>
+    * linking_id : number <<FK>>
+    order_id : number <<FK>> /' opt, assigned for order specific chats '/
+    
+    createdAt : datetime
+}
+
+entity Messages {
+    * message_id : number <<generated>>
+    * chat_id : number <<FK>>
+    * sender_id : number <<FK>>
+    type : enum {text, audio, image, file}
+    body : string /'text if type=text, url otherwise'/
+    
+    sent_at : datetime
+}
+
+entity Complaints {
+    * complaint_id : number <<generated>>
+    order_id : number <<FK>>
+    raised_by_user_id : number <<FK>>  /'consumer who raised it'/
+    assigned_to_salesman_id : number <<FK>> /'Sales, assigned right away'/
+    escalated_to_manager_id : number <<FK>> /'Mangers assigned when escalated'/
+    escalated_to_owner_id : number <<FK>> 
+
+    status : enum {open, in_progress, escalated, resolved, closed}
+    
+    description : string
+    resolution_notes : string
+    
+    createdAt : datetime
+    updatedAt : datetime
+}
+
+entity ComplaintHistory {
+    * history_id : number <<generated>>
+    complaint_id : number <<FK>>
+    changed_by_user_id : number <<FK>>
+    
+    new_status : enum
+    notes : string
+    
+    updatedAt : datetime
+}
+    
+' Relations
+
+Companies ||--|{ Users : "employs"
+
+Companies ||--o{ Products : "offers"
+
+Companies }o--|| Linkings : "acts as supplier"
+Companies }o--|| Linkings : "acts as consumer"
+
+Orders   ||--|{ OrderProducts : "contains"
+Products ||--o{ OrderProducts : "used in"
+
+Orders   ||--|| Chats : "has a chat"
+Linkings ||--o{ Chats : "may have chats"
+Chats    ||--o{ Messages : "contains messages"
+
+Linkings ||--o{ Orders : "receives/creates"
+
+Orders ||--o| Complaints : "may have"
+Complaints ||--|{ ComplaintHistory : "logs"
+
+@enduml

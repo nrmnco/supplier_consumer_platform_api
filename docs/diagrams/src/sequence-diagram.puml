@@ -1,0 +1,140 @@
+@startuml
+title Sequence Diagram
+
+actor SupplierOwner as SOwner
+actor SupplierManager as SManager
+actor SalesRepresentative as Sales
+actor ConsumerOwner as COwner
+actor ConsumerBuyer as CBuyer
+
+participant "Web/Mobile App" as App
+participant "Backend API" as API
+participant "Company Service" as CompanySvc
+participant "User Service" as UserSvc
+participant "Linking Service" as LinkSvc
+participant "Product Service" as ProductSvc
+participant "Order Service" as OrderSvc
+participant "Complaint Service" as ComplaintSvc
+participant "Chat Service" as ChatSvc
+
+
+
+== STAFF MANAGEMENT FLOW ==
+
+SOwner -> App: Open company staff management
+COwner -> App: Open company staff management
+App -> API: GET /users?companyId
+API -> UserSvc: getCompanyUsers()
+UserSvc --> API: return user list
+API --> App: Display staff list
+
+SOwner -> App: Add new staff (Manager or Sales)
+App -> API: POST /users (userData)
+API -> UserSvc: createUser(companyId, userData)
+UserSvc --> API: success
+API --> App: "Staff added successfully"
+
+COwner -> App: Add Buyer Staff
+App -> API: POST /users (userData)
+API -> UserSvc: createUser(companyId, userData)
+UserSvc --> API: success
+API --> App: "Buyer staff added"
+
+
+
+== LINKING FLOW ==
+
+COwner -> App: Send link request to Supplier
+App -> API: POST /linkRequest
+API -> LinkSvc: createLinkRequest(consumerId, supplierId)
+LinkSvc --> API: status = "pending"
+API --> App: Show "Request pending"
+
+SOwner -> App: View pending link requests
+App -> API: GET /linkRequests
+API -> LinkSvc: getPendingRequests(supplierId)
+LinkSvc --> API: list
+API --> App: Display requests
+
+SOwner -> App: Approve link
+App -> API: PUT /linkRequests/{id}/approve
+API -> LinkSvc: approveLink(requestId)
+LinkSvc --> API: status = "accepted"
+API -> ChatSvc: createChat(linkId)
+API --> App: Notify both parties
+App -> COwner: "Link approved"
+App -> CBuyer: "Supplier available"
+
+
+
+== CATALOG MANAGEMENT (Supplier) ==
+
+SManager -> App: Add/Edit Product
+App -> API: POST /products
+API -> ProductSvc: saveOrUpdateProduct(data)
+ProductSvc --> API: success
+API --> App: "Product updated"
+
+SManager -> App: Update Stock
+App -> API: PATCH /products/{id}/stock
+API -> ProductSvc: updateStock()
+ProductSvc --> API: OK
+API --> App: "Stock updated"
+
+
+
+== ORDER FLOW (Consumer -> Supplier) ==
+
+CBuyer -> App: Browse catalog
+App -> API: GET /products?supplierId
+API -> LinkSvc: verifyLink(CBuyer, supplierId)
+LinkSvc --> API: approved
+API -> ProductSvc: getProducts()
+ProductSvc --> API: product list
+API --> App: Display catalog
+
+CBuyer -> App: Place order
+App -> API: POST /orders
+API -> OrderSvc: createOrder(items)
+OrderSvc -> ProductSvc: checkStockAvailability()
+ProductSvc --> OrderSvc: OK
+OrderSvc --> API: orderCreated(orderId)
+API --> App: "Order created"
+API -> Sales: Notify new order
+
+Sales -> App: View assigned orders
+App -> API: GET /orders?salesId
+API -> OrderSvc: getOrdersForSales()
+OrderSvc --> API: list
+API --> App: Display orders
+
+Sales -> App: Accept order
+App -> API: PATCH /orders/{id}/status ("accepted")
+API -> OrderSvc: updateStatus("accepted")
+OrderSvc --> API: OK
+API -> CBuyer: "Order accepted"
+
+
+
+== COMPLAINT FLOW ==
+
+CBuyer -> App: File complaint
+App -> API: POST /complaints
+API -> ComplaintSvc: createComplaint(orderId, desc)
+ComplaintSvc -> Sales: notifyComplaintAssigned()
+
+Sales -> ComplaintSvc: attemptResolution()
+ComplaintSvc -> API: updateStatus("in_progress")
+
+alt Not resolved by Sales
+    Sales -> ComplaintSvc: escalateToManager()
+    ComplaintSvc -> SManager: notifyEscalation()
+    SManager -> ComplaintSvc: resolveComplaint(notes)
+    ComplaintSvc -> API: updateStatus("resolved")
+    API --> App: Notify CBuyer "Resolved by Manager"
+else Resolved by Sales
+    ComplaintSvc -> API: updateStatus("resolved")
+    API --> App: Notify CBuyer "Resolved by Sales"
+end
+
+@enduml

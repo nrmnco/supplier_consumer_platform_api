@@ -1,0 +1,73 @@
+@startuml Component Diagram
+' === Frontend components ===
+component "Web Frontend (Supplier)" <<frontend>> {
+    [Catalogs Page] as WebCatalogs
+    [Orders Page] as WebOrders
+    [Complaints Page] as WebComplaints
+    [Auth] as WebAuth
+    [Link Management] as WebLink
+    [Chat] as WebChat
+}
+
+component "Mobile App (Supplier & Consumer)" <<frontend>> {
+    [Catalogs] as MobileCatalogs
+    [Orders] as MobileOrders
+    [Complaints] as MobileComplaints
+    [Auth] as MobileAuth
+    [Link Management] as MobileLink
+    [Chat] as MobileChat
+}
+
+' === Backend ===
+component "Backend" <<backend>> {
+    interface "Catalogs API" as CatalogsAPI
+    [Catalogs Service] as CatalogsService
+    CatalogsAPI -- CatalogsService
+    
+    interface "Orders API" as OrdersAPI
+    [Orders Service] as OrdersService
+    OrdersAPI -- OrdersService
+    
+    interface "Complaint API" as ComplaintAPI
+    [Complaint Service] as ComplaintService
+    ComplaintAPI -- ComplaintService
+    
+    interface "Auth API" as AuthAPI
+    [Auth Service] as AuthService
+    AuthAPI -- AuthService
+    
+    interface "Link API" as LinkAPI
+    [Link Service] as LinkService
+    LinkAPI -- LinkService
+    
+    interface "Chat API" as ChatAPI
+    [Chat Service] as ChatService
+    ChatAPI -- ChatService
+    
+    database "Database" as DB
+    
+    CatalogsService --> DB
+    OrdersService --> DB
+    ComplaintService --> DB
+    AuthService --> DB
+    LinkService --> DB
+    ChatService --> DB
+}
+
+' === Connections from Web Frontend to Backend ===
+WebCatalogs -[#blue]-> CatalogsAPI
+WebOrders -[#blue]-> OrdersAPI
+WebComplaints -[#blue]-> ComplaintAPI
+WebAuth -[#blue]-> AuthAPI
+WebLink -[#blue]-> LinkAPI
+WebChat -[#blue]-> ChatAPI
+
+' === Connections from Mobile App to Backend ===
+MobileCatalogs -[#red]-> CatalogsAPI
+MobileOrders -[#orange]-> OrdersAPI
+MobileComplaints -[#yellow]-> ComplaintAPI
+MobileAuth -[#green]-> AuthAPI
+MobileLink -[#cyan]-> LinkAPI
+MobileChat -[#purple]-> ChatAPI
+
+@enduml

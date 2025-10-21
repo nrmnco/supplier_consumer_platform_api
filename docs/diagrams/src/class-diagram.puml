@@ -1,0 +1,323 @@
+@startuml Class Diagram
+
+' Class diagram for Supplier Consumer Platform (SCP)
+' Based on SRS v2.0 and database schema
+' Properly structured with role-based relationships and clear associations
+
+skinparam linetype ortho
+
+' Make diagram cleaner and more readable
+skinparam ranksep 50
+skinparam nodesep 50
+skinparam padding 5
+skinparam classAttributeIconSize 0
+skinparam groupInheritance 2
+
+
+' ============================================================================
+' CORE ENTITIES
+' ============================================================================
+
+class User {
+    - user_id: Long
+    - company_id: Long
+    - status: String {"active", "suspended"}
+    - first_name: String
+    - last_name: String
+    - phone_number: String
+    - email: String
+    - password: String
+    - role: String {"owner", "manager", "staff"}
+    - createdAt: DateTime
+    - locale: String {"ru", "en", "kz"}
+    __
+    + login(email: String, password: String): Boolean
+    + authenticate(): Boolean
+    + hasPermission(action: String): Boolean
+    + updateProfile(data: UserData): void
+    + changePassword(oldPassword: String, newPassword: String): Boolean
+    + activate(): void
+    + suspend(): void
+}
+
+class Company {
+    - company_id: Long
+    - status: String {"active", "suspended"}
+    - name: String
+    - description: String
+    - logo_url: String
+    - location: String
+    - type: String {"supplier", "consumer"}
+    __
+    + activate(): void
+    + suspend(): void
+    + updateInfo(data: CompanyData): void
+    + delete(): void
+    + getUsers(): List<User>
+    + addUser(user: User): void
+    + removeUser(userId: Long): void
+    + getProducts(): List<Product>
+    + getLinksAsSupplier(): List<Linking>
+    + getLinksAsConsumer(): List<Linking>
+}
+
+class Product {
+    - product_id: Long
+    - company_id: Long
+    - name: String
+    - description: String
+    - picture_urls: List<String>
+    - stock: Integer
+    - retail_price: Decimal
+    - threshold: Integer
+    - bulk_price: Decimal
+    - minimum_order: Integer
+    - unit: String
+    __
+    + updateStock(quantity: Integer): void
+    + setPrice(retailPrice: Decimal, bulkPrice: Decimal): void
+    + setMinimumOrder(quantity: Integer): void
+    + isAvailable(): Boolean
+    + checkStock(requestedQuantity: Integer): Boolean
+    + applyDiscount(percentage: Decimal): void
+    + getSupplierCompany(): Company
+}
+
+class Linking {
+    - linking_id: Long
+    - consumer_company_id: Long
+    - supplier_company_id: Long
+    - requested_by_user_id: Long
+    - responded_by_user_id: Long
+    - assigned_salesman_id: Long
+    - status: String {"pending", "accepted", "rejected", "unlinked"}
+    - message: String
+    - createdAt: DateTime
+    - updatedAt: DateTime
+    __
+    + approve(salesmanId: Long): void
+    + reject(reason: String): void
+    + unlink(): void
+    + assignSalesman(salesmanId: Long): void
+    + isPending(): Boolean
+    + isActive(): Boolean
+    + getConsumerCompany(): Company
+    + getSupplierCompany(): Company
+}
+
+class Order {
+    - order_id: Long
+    - linking_id: Long
+    - consumer_staff_id: Long
+    - total_price: Decimal
+    - status: String {"created", "processing", "shipping", "completed"}
+    __
+    + create(): void
+    + accept(): void
+    + reject(reason: String): void
+    + updateStatus(newStatus: String): void
+    + calculateTotal(): Decimal
+    + track(): String
+    + addProduct(product: Product, quantity: Integer, price: Decimal): void
+    + removeProduct(productId: Long): void
+    + getProducts(): List<Product>
+    + getLinking(): Linking
+    + getPlacedByUser(): User
+}
+
+class OrderProduct <<association>> {
+    - order_id: Long
+    - product_id: Long
+    - product_quantity: Integer
+    - product_price: Decimal
+    __
+    + updateQuantity(quantity: Integer): void
+    + getSubtotal(): Decimal
+    + validateStock(): Boolean
+}
+
+class Chat {
+    - chat_id: Long
+    - linking_id: Long
+    - order_id: Long
+    - createdAt: DateTime
+    __
+    + create(): void
+    + getMessages(): List<Message>
+    + sendMessage(senderId: Long, type: String, body: String): Message
+    + getLinking(): Linking
+    + getOrder(): Order
+}
+
+class Message {
+    - message_id: Long
+    - chat_id: Long
+    - sender_id: Long
+    - type: String {"text", "audio", "image", "file"}
+    - body: String
+    - sent_at: DateTime
+    __
+    + send(): void
+    + markAsRead(): void
+    + attachFile(fileUrl: String): void
+    + getSender(): User
+}
+
+class Complaint {
+    - complaint_id: Long
+    - order_id: Long
+    - raised_by_user_id: Long
+    - assigned_to_salesman_id: Long
+    - escalated_to_manager_id: Long
+    - escalated_to_owner_id: Long
+    - status: String {"open", "in_progress", "escalated", "resolved", "closed"}
+    - description: String
+    - resolution_notes: String
+    - createdAt: DateTime
+    - updatedAt: DateTime
+    __
+    + submit(): void
+    + escalateToManager(managerId: Long): void
+    + escalateToOwner(ownerId: Long): void
+    + resolve(notes: String): void
+    + close(): void
+    + assignToSalesman(salesmanId: Long): void
+    + addNote(note: String): void
+    + getOrder(): Order
+    + getRaisedByUser(): User
+}
+
+class ComplaintHistory {
+    - history_id: Long
+    - complaint_id: Long
+    - changed_by_user_id: Long
+    - new_status: String {"open", "in_progress", "escalated", "resolved", "closed"}
+    - notes: String
+    - updatedAt: DateTime
+    __
+    + log(status: String, notes: String): void
+    + getChangedByUser(): User
+}
+
+
+' ============================================================================
+' RELATIONSHIPS
+' ============================================================================
+
+' Company employs Users (composition - users belong to a company)
+Company "1" *-- "1..*" User : employs >
+
+' Company offers Products (composition - products belong to a company)
+Company "1" *-- "0..*" Product : offers >
+
+' Linking connects two companies with different roles
+Company "consumer\n1" o-- "0..*" Linking : requests link >
+Company "supplier\n1" o-- "0..*" Linking : accepts link >
+
+' Users participate in Linking with different roles
+User "requester\n1" -- "0..*" Linking : initiates >
+User "responder\n1" -- "0..*" Linking : approves >
+User "salesman\n1" -- "0..*" Linking : assigned to >
+
+' Linking contains Orders (composition)
+Linking "1" *-- "0..*" Order : contains >
+
+' User places Orders
+User "placer\n1" -- "0..*" Order : creates >
+
+' Order and Product many-to-many through OrderProduct
+Order "1" *-- "1..*" OrderProduct : contains >
+Product "1" o-- "0..*" OrderProduct : included in >
+
+' Chat relationships
+Linking "1" *-- "0..*" Chat : has general chat >
+Order "1" o-- "0..1" Chat : has specific chat >
+
+' Chat contains Messages (composition)
+Chat "1" *-- "0..*" Message : contains >
+
+' User sends Messages
+User "sender\n1" -- "0..*" Message : writes >
+
+' Complaint relationships with multiple user roles
+Order "1" o-- "0..1" Complaint : may have >
+User "raiser\n1" -- "0..*" Complaint : submits >
+User "salesman\n0..1" -- "0..*" Complaint : handles >
+User "manager\n0..1" -- "0..*" Complaint : escalated to >
+User "owner\n0..1" -- "0..*" Complaint : escalated to >
+
+' ComplaintHistory logs Complaint changes (composition)
+Complaint "1" *-- "1..*" ComplaintHistory : tracks >
+
+' User makes changes in ComplaintHistory
+User "changer\n1" -- "0..*" ComplaintHistory : records >
+
+
+' ============================================================================
+' NOTES AND DOCUMENTATION
+' ============================================================================
+
+note right of User
+  <b>User Roles:</b>
+  • <b>Owner:</b> Full company control
+  • <b>Manager:</b> Catalog & escalation management
+  • <b>Staff:</b> Consumer communication & support
+  
+  Users belong to one company and can
+  participate in various activities based
+  on their role.
+end note
+
+note right of Company
+  <b>Company Types:</b>
+  • <b>Supplier:</b> Offers products to consumers
+  • <b>Consumer:</b> Orders products from suppliers
+  
+  A company can potentially be both a
+  supplier and a consumer (dual role).
+end note
+
+note right of Linking
+  <b>Linking Workflow:</b>
+  1. Consumer user requests link
+  2. Supplier user responds (accept/reject)
+  3. If accepted, salesman is assigned
+  4. Enables ordering between companies
+  
+  <b>Status:</b> pending → accepted/rejected/unlinked
+end note
+
+note right of Order
+  <b>Order Lifecycle:</b>
+  created → processing → shipping → completed
+  
+  Orders are placed through active Linkings.
+  Consumer staff creates orders from
+  supplier's product catalog.
+end note
+
+note right of OrderProduct
+  <b>Association Class</b>
+  Represents the many-to-many relationship
+  between Orders and Products with additional
+  attributes (quantity, price at time of order).
+end note
+
+note right of Complaint
+  <b>Escalation Chain:</b>
+  1. Consumer raises complaint on order
+  2. Assigned to supplier salesman
+  3. Can escalate to supplier manager
+  4. Can further escalate to supplier owner
+  
+  <b>Status:</b> open → in_progress → 
+  escalated → resolved → closed
+end note
+
+note top of Chat
+  Chats can be:
+  • General (linked to a Linking)
+  • Order-specific (linked to an Order)
+end note
+
+@enduml

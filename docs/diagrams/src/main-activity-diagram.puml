@@ -1,0 +1,90 @@
+@startuml Main Activity Diagram
+
+start
+
+:User opens app;
+:User logs in;
+
+fork
+  :Open chat anytime;
+  switch (Chat actions)
+  case (Start new chat)
+    :Select partner company (linked consumer/supplier);
+    :Create new chat session;
+  case (Send message)
+    :Write text / attach file / record audio;
+    :Send message;
+    :Message saved in chat history;
+  case (Receive message)
+    :Notification received;
+    :Open and read message;
+  endswitch
+fork again
+
+  switch (User company type)
+  case (Consumer)
+    switch (Consumer role)
+    case (Owner)
+      :Manage company profile;
+      :Approve or remove buyers;
+      :Send or receive link requests to suppliers;
+      if (Supplier approves link?) then (Yes)
+        :Monitor linked suppliers;
+        :View order summaries and complaints;
+      else (Rejected)
+        :Receive rejection notice;
+      endif
+    case (Buyer)
+      :View approved suppliers and their catalogs;
+      :Add products to cart;
+      :Place order with supplier;
+      :Track order status;
+      if (Order delivered?) then (Yes)
+        :Confirm or file complaint;
+        if (Complaint filed?) then (Yes)
+          :Sales reviews complaint;
+          if (Resolved?) then (Yes)
+            :Complaint closed;
+          else (No)
+            :Escalate to Manager;
+          endif
+        endif
+      endif
+    endswitch
+
+  case (Supplier)
+    switch (Supplier role)
+    case (Owner)
+      :Manage Managers and Sales Representatives;
+      :Oversee company account;
+      :Suspend or delete account if needed;
+    case (Manager)
+      switch (Catalog management)
+      case (Add product)
+        :Enter product details;
+        :Save product to catalog;
+      case (Edit product)
+        :Select and update product;
+        :Save changes;
+      case (Remove product)
+        :Select product and confirm deletion;
+      endswitch
+      :Updated catalog visible to linked consumers;
+      :Handle escalated complaints;
+    case (Sales Representative)
+      :Respond to link requests;
+      :Process incoming orders;
+      :Communicate with consumers;
+      :Handle first-line complaints;
+      if (Cannot resolve?) then (Yes)
+        :Escalate to Manager;
+      endif
+    endswitch
+  endswitch
+
+end fork
+
+:User logs out;
+stop
+@enduml
+
