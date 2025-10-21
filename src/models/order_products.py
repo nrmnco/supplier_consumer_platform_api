@@ -1,18 +1,13 @@
-from sqlalchemy import Column, Integer, ForeignKey, PrimaryKeyConstraint
-from sqlalchemy.orm import relationship
-from src.database import Base
+from sqlmodel import SQLModel, Field, Relationship
 
-class OrderProducts(Base):
+class OrderProducts(SQLModel, table=True):
     __tablename__ = "order_products"
 
-    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)
-    quantity = Column(Integer, nullable=False)
-    product_price = Column(Integer, nullable=False)
+    order_id: int = Field(foreign_key="orders.order_id", primary_key=True, nullable=False)
+    product_id: int = Field(foreign_key="products.proudct_id", primary_key=True, nullable=False)
 
-    __table_args__ = (
-        PrimaryKeyConstraint('product_id', 'order_id')
-    )
+    product_quantity: int = Field(nullable=False)
+    product_price: int = Field(nullable=False)
 
-    order = relationship("Orders", back_populates="order_products")
-    product = relationship("Products", back_populates="order_products")
+    order: "Orders" = Relationship(back_populates="order_products")
+    product: "Products" = Relationship(back_populates="order_products")

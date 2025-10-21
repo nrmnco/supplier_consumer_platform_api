@@ -1,28 +1,31 @@
-from sqlalchemy import Column, Integer, String, Enum
-from sqlalchemy.orm import relationship
-from src.database import Base
-import enum
+from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
 
-class CompanyType(enum.Enum):
-    supplier = "supplier"
-    consumer = "consumer"
-
-class CompanyStatus(enum.Enum):
+class CompanyStatus(str, Enum):
     active = "active"
     suspended = "suspended"
 
-class Companies(Base):
+class CompanyType(str, Enum):
+    supplier = "supplier"
+    consumer = "consumer"
+
+class Companies(SQLModel, table=True):
     __tablename__ = "companies"
 
-    company_id = Column(Integer, primary_key=True, index=True)
-    status = Column(Enum(CompanyStatus), default=CompanyStatus.active, nullable=False)
-    name = Column(String, nullable=False)
-    description = Column(String, nullable=True)
-    logo_url = Column(String, nullable=True)
-    location = Column(String, nullable=True)
-    type = Column(Enum(CompanyType), nullable=False)
+    company_id: int | None = Field(primary_key=True, default=None)
 
-    users = relationship("Users", back_populates="company")
-    products = relationship("Products", back_populates="company")
-    linkings_as_consumer = relationship("Linkings", foreign_keys="Linkings.consumer_company_id", back_populates="consumer_company")
-    linkings_as_supplier = relationship("Linkings", foreign_keys="Linkings.supplier_company_id", back_populates="supplier_company")
+    status: CompanyStatus = Field(default=CompanyStatus.active, nullable=False)
+
+    name: str = Field(nullable=False)
+    description: str | None = Field(default=None, nullable=True)
+    logo_url: str | None = Field(default=None, nullable=True)
+    location: str = Field(nullable=False)
+    company_type: CompanyType = Field(nullable=False)
+
+    users: list["Users"] = Relationship(back_populates="company")
+    products: list["Prodcuts"] = Relationship(back_populates="company")
+    
+    linked_as_consumer: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.consumer_company_id]"})
+    linked_as_supplier: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.supplier_company_id]"})
+
+    

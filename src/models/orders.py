@@ -1,26 +1,28 @@
-from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey
-from sqlalchemy.orm import relationship
-from src.database import Base
-import enum
+from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
+from datetime import datetime
 
-class OrderStatus(enum.Enum):
+class OrderStatus(str, Enum):
     created = "created"
     processing = "processing"
     shipping = "shipping"
     completed = "completed"
 
-class Orders(Base):
+class Orders(SQLModel, table=True):
     __tablename__ = "orders"
 
-    order_id = Column(Integer, primary_key=True, index=True)
-    linking_id = Column(Integer, ForeignKey("linkings.company_id"), nullable=False)
-    consumer_staff_id = Column(Integer, ForeignKey("companies.company_id"), nullable=False)
+    order_id: int | None = Field(primary_key=True, default=None)
+    linking_id: int = Field(foreign_key="linkings.linking_id", nullable=False)
+    consumer_staff_id: int = Field(foreign_key= "users.used_id", nullable=False)
 
-    status = Column(Enum(OrderStatus), default=OrderStatus.created, nullable=False)
+    total_proce: int = Field(nullable=False)
 
-    total_price = Column(Integer, nullable=False)
+    status: OrderStatus = Field(default=OrderStatus.created, nullable=False)
 
-    created_at = Column(DateTime, nullable=False)
+    created_at: str = Field(default=datetime.now(), nullable=False)
+    updated_at: str = Field(default=datetime.now(), nullable=False)
 
-    linking = relationship("Linkings", back_populates="orders")
-    order_products = relationship("OrderProducts", back_populates="order")
+    linking: "Linkings" = Relationship(back_populates="orders")
+    consumer_staff: "Users" = Relationship(back_populates="orders")
+
+    order_products: list["OrderProducts"] = Relationship(back_populates="order")

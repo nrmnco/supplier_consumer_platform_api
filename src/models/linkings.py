@@ -1,35 +1,35 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
-from sqlalchemy.orm import relationship
-from src.database import Base
-import enum
+from sqlmodel import SQLModel, Field, Relationship  
+from enum import Enum
+from datetime import datetime
 
-class LinkingStatus(enum.Enum):
-    accepted = "accepted"
+class LinkingStatus(str, Enum):
     pending = "pending"
+    accepted = "accepted"
     rejected = "rejected"
     unlinked = "unlinked"
 
-class Linkings(Base):
+class Linkings(SQLModel, table=True):
     __tablename__ = "linkings"
 
-    linking_id = Column(Integer, primary_key=True, index=True)
-    consumer_company_id = Column(Integer, ForeignKey("companies.company_id"), nullable=False)
-    supplier_company_id = Column(Integer, ForeignKey("companies.company_id"), nullable=False)
+    linking_id: int | None = Field(primary_key=True, default=None)
+    consumer_company_id: int = Field(foreign_key="companies.company_id", nullable=False)
+    supplier_company_id: int = Field(foreign_key="companies.company_id", nullable=False)
 
-    requested_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    responded_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    assigned_salesman_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-
-    status = Column(Enum(LinkingStatus), default=LinkingStatus.pending, nullable=False)
-    message = Column(String, nullable=True)
-
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
+    requested_by_user_id: int = Field(foreign_key="users.user_id", nullable=False)
+    responded_by_user_id: int | None = Field(foreign_key="users.user_id", default=None, nullable=True)
+    assigned_salesman_user_id: int | None = Field(foreign_key="users.user_id", default=None, nullable=True)
     
-    consumer_company = relationship("Companies", foreign_keys=[consumer_company_id], back_populates="linkings_as_consumer")
-    supplier_company = relationship("Companies", foreign_keys=[supplier_company_id], back_populates="linkings_as_supplier")
-    requested_by_user = relationship("Users", foreign_keys=[requested_by_user_id], back_populates="linkings_requested")
-    responded_by_user = relationship("Users", foreign_keys=[responded_by_user_id], back_populates="linkings_responded")
-    assigned_salesman = relationship("Users", foreign_keys=[assigned_salesman_id], back_populates="linkings_assigned")
-    orders = relationship("Orders", back_populates="linking")
-    
+    status: LinkingStatus = Field(default=LinkingStatus.pending, nullable=False)
+    message: str | None = Field(default=None, nullable=True)
+
+    created_at: str = Field(default=datetime.now(), nullable=False)
+    updated_at: str = Field(default=datetime.now(), nullable=False)
+
+    consumer_company: "Companies" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.consumer_company_id]"})
+    supplier_company: "Companies" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.supplier_company_id]"})
+
+    requested_by_user: "Users" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.requested_by_user_id]"})
+    responded_by_user: "Users" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.responded_by_user_id]"})
+    assigned_salesman_user: "Users" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.assigned_salesman_user_id]"})
+
+    orders: list["Orders"] = Relationship(back_populates="linking")

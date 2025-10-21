@@ -1,43 +1,43 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
-from src.database import Base
-from sqlalchemy.orm import relationship
-import enum
+from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
+from datetime import datetime
 
-class UserStatus(enum.Enum):
+class UserStatus(str, Enum):
     active = "active"
     suspended = "suspended"
 
-class UserRole(enum.Enum):
+class UserRole(str, Enum):
     owner = "owner"
     manager = "manager"
     staff = "staff"
 
-class Locale(enum.Enum):
-    en = "en"
+class Locale(str, Enum):
     ru = "ru"
+    en = "en"
     kz = "kz"
 
-class Users(Base):
+class Users(SQLModel, table=True):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    user_id: int | None = Field(primary_key=True, default=None)
+    company_id: int = Field(foreign_key="companies.company_id", default=None)
 
-    company_id = Column(Integer, ForeignKey("companies.company_id"), nullable=False)
-    role = Column(Enum(UserRole), nullable=False)
+    status: UserStatus = Field(default=UserStatus.active, nullable=False)
+    first_name: str = Field(nullable=False)
+    last_name: str = Field(nullable=False)
+    phone_number: str = Field(nullable=False, index=True, unique=True)
 
-    status = Column(Enum(UserStatus), default=UserStatus.active, nullable=False)
-    locale = Column(Enum(Locale), default=Locale.en, nullable=False)
+    email: str = Field(nullable=False, index=True, unique=True)
+    hashed_password: str = Field(nullable=False)
+    role: UserRole = Field(nullable=False)
 
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    phone_number = Column(String, unique=True, nullable=False)
+    created_at: str = Field(default=datetime.now() ,nullable=False)
+    locale: Locale = Field(default=Locale.en, nullable=False)
 
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
+    company: "Companies" = Relationship(back_populates="users")
 
-    company = relationship("Companies", back_populates="users")
-    linkings_requested = relationship("Linkings", foreign_keys="Linkings.requested_by_user_id", back_populates="requested_by_user")
-    linkings_responded = relationship("Linkings", foreign_keys="Linkings.responded_by_user_id", back_populates="responded_by_user")
-    linkings_assigned = relationship("Linkings", foreign_keys="Linkings.assigned_salesman_id", back_populates="assigned_salesman")
+    requested_linkings: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.requested_by_user_id]"})
+    responded_linkings: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.responded_by_user_id]"})
+    assigned_salesman_linkings: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.assigned_salesman_user_id]"})
+
+    orders: list["Orders"] = Relationship(back_populates="consumer_staff")

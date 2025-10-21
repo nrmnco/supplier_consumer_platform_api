@@ -1,24 +1,22 @@
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey
-from sqlalchemy.orm import relationship
-from src.database import Base
+from sqlmodel import SQLModel, Field, Relationship
 
-class Products(Base):
+class Prodcuts(SQLModel, table=True):
     __tablename__ = "products"
 
-    product_id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.company_id"), nullable=False)
+    proudct_id: int | None = Field(primary_key=True, default=None)
+    company_id: int | None = Field(foreign_key="companies.company_id", default=None)
 
-    name = Column(String, nullable=False)
-    description = Column(String, nullable=False)
-    picture_urls = Column(JSON, nullable=False)
-    stock = Column(Integer, nullable=False)
+    name: str = Field(nullable=False)
+    description: str | None = Field(default=None, nullable=True)
+    picture_url: str | None = Field(default=None, nullable=True)
+    stock_quantity: int = Field(nullable=False, default=0)
+    
+    retail_price: int = Field(nullable=False)
+    threshold: int | None = Field(nullable=True, default=None)
+    bulk_price: int | None = Field(nullable=True, default=None)
 
-    retail_price = Column(Integer, nullable=False)
-    threshold_price = Column(Integer, nullable=True)
-    bulk_price = Column(Integer, nullable=True)
+    minimum_order: int = Field(nullable=False, default=1)
+    unit: str = Field(nullable=False)
 
-    minimum_order_quantity = Column(Integer, nullable=False)
-    unit = Column(String, nullable=False)
-
-    company = relationship("Companies", back_populates="products")
-    order_products = relationship("OrderProducts", back_populates="product")
+    company: "Companies" = Relationship(back_populates="products")
+    order_products: list["OrderProducts"] = Relationship(back_populates="product")
