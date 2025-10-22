@@ -23,7 +23,7 @@ class Companies(SQLModel, table=True):
     company_type: CompanyType = Field(nullable=False)
 
     users: list["Users"] = Relationship(back_populates="company")
-    products: list["Prodcuts"] = Relationship(back_populates="company")
+    products: list["Products"] = Relationship(back_populates="company")
     
     linked_as_consumer: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.consumer_company_id]"})
     linked_as_supplier: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.supplier_company_id]"})

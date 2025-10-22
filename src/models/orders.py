@@ -29,5 +29,5 @@ class Orders(SQLModel, table=True):
 
     chats: list["Chats"] = Relationship(back_populates="order")
 
-    complaint: "Complaints" = Relationship(back_populates="order")
+    complaints: "Complaints" = Relationship(back_populates="order")
     
