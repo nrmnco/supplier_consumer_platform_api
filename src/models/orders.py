@@ -13,7 +13,7 @@ class Orders(SQLModel, table=True):
 
     order_id: int | None = Field(primary_key=True, default=None)
     linking_id: int = Field(foreign_key="linkings.linking_id", nullable=False)
-    consumer_staff_id: int = Field(foreign_key= "users.used_id", nullable=False)
+    consumer_staff_id: int = Field(foreign_key= "users.user_id", nullable=False)
 
     total_proce: int = Field(nullable=False)
 
@@ -26,3 +26,8 @@ class Orders(SQLModel, table=True):
     consumer_staff: "Users" = Relationship(back_populates="orders")
 
     order_products: list["OrderProducts"] = Relationship(back_populates="order")
+
+    chats: list["Chats"] = Relationship(back_populates="order")
+
+    complaint: "Complaints" = Relationship(back_populates="order")
+    

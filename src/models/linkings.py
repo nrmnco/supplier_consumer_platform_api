@@ -33,3 +33,5 @@ class Linkings(SQLModel, table=True):
     assigned_salesman_user: "Users" = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.assigned_salesman_user_id]"})
 
     orders: list["Orders"] = Relationship(back_populates="linking")
+
+    chats: list["Chats"] = Relationship(back_populates="linking")

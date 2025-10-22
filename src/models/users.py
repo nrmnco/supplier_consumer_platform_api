@@ -41,3 +41,7 @@ class Users(SQLModel, table=True):
     assigned_salesman_linkings: list["Linkings"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Linkings.assigned_salesman_user_id]"})
 
     orders: list["Orders"] = Relationship(back_populates="consumer_staff")
+
+    complaints_assigned_salesman: list["Complaints"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Complaints.assigned_to_salesman_id]"})
+    complaints_escalated_manager: list["Complaints"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Complaints.escalated_to_manager_id]"})
+    complaints_escalated_owner: list["Complaints"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[Complaints.escalated_to_owner_id]"})

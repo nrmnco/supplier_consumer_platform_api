@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 
-class Prodcuts(SQLModel, table=True):
+class Products(SQLModel, table=True):
     __tablename__ = "products"
 
     proudct_id: int | None = Field(primary_key=True, default=None)
