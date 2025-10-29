@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from sqlmodel import Session
-from src.core.database import create_db_and_tables, get_session
-from src.routes.authentication import router as auth_router
+from src.core.database import create_db_and_tables
+from src.routes import router
 
 
 @asynccontextmanager
@@ -17,7 +16,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(auth_router)
+app.include_router(router)
 
 @app.get("/")
 async def read_root():
