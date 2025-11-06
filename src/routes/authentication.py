@@ -22,6 +22,7 @@ async def register_company_with_owner(data: UserCompanySchema, session: Session 
         access_token = create_token(data={"sub": user.email})
         refresh_token = create_token(data={"sub": user.email}, expires_delta=timedelta(days=7), refresh=True)
         return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -34,6 +35,7 @@ async def login_user(data: UserLoginSchema, session: Session = Depends(get_sessi
     
     access_token = create_token(data={"sub": user.email})
     refresh_token = create_token(data={"sub": user.email}, expires_delta=timedelta(days=7), refresh=True)
+
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh", response_model=dict)
@@ -44,7 +46,10 @@ async def refresh_token(refresh_token: str, session: Session = Depends(get_sessi
         user = get_user_by_email(session, email)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    
     access_token = create_token(data={"sub": user.email})
+    
     return {"access_token": access_token, "token_type": "bearer"}
