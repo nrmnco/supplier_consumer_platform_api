@@ -27,7 +27,7 @@ class S3Service:
             Key=key,
             Fields={"acl": "public-read"},
             Conditions=[{"acl": "public-read"}],
-            ExpiresIn=3600
+            ExpiresIn=120
         )
 
         finalurl = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{key}"

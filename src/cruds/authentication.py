@@ -1,8 +1,9 @@
-from sqlmodel import Session, select
+from sqlmodel import Session
 from src.models.users import Users
 from src.models.companies import Companies
 from src.schemas.authentication import UserCompanySchema
 from src.core.security import hash_password, verify_password
+from src.cruds.user import get_user_by_email
 
 def create_company_with_owner(session: Session, data: UserCompanySchema) -> Users:
     company_data = data.company
@@ -23,8 +24,6 @@ def create_company_with_owner(session: Session, data: UserCompanySchema) -> User
 
     return owner_user
 
-def get_user_by_email(session: Session, email: str) -> Users | None:
-    return session.exec(select(Users).where(Users.email == email)).first()
 
 def authenticate_user(session: Session, email: str, password: str) -> Users | None:
     user = get_user_by_email(session, email)
