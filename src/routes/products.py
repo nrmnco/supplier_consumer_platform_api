@@ -10,12 +10,12 @@ from src.schemas.products import ProductSchema
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
-@router.get("/products")
+@router.get("/")
 async def all_products(user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     products = get_all_products(session)
     return {"products": products}
 
-@router.post("/products")
+@router.post("/")
 async def add_product(data: ProductSchema, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
     
@@ -34,7 +34,7 @@ async def add_product(data: ProductSchema, user: str = Depends(check_access_toke
 
     return {"message": "Product created successfully", "product": product}
     
-@router.delete("/products/{product_id}")
+@router.delete("/{product_id}")
 async def delete_product(product_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
     
@@ -50,5 +50,6 @@ async def delete_product(product_id: int, user: str = Depends(check_access_token
         raise HTTPException(status_code=403, detail="Insufficient permissions to create product")
 
     delete_product(session, product_id)
-    
+
     return {"message": f"Product with id {product_id} deleted successfully"}
+
