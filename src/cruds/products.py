@@ -21,8 +21,22 @@ def create_product(session: Session, data: ProductSchema, company_id: int) -> Pr
 
 def delete_product(session: Session, product_id: int) -> None:
     product = session.get(Products, product_id)
-    
+
     if product:
         session.delete(product)
         session.commit()
 
+def update_product(session: Session, product_id: int, data: ProductSchema) -> Products:
+    product = session.get(Products, product_id)
+
+    if not product:
+        raise ValueError("Product not found")
+
+    for key, value in data.model_dump().items():
+        setattr(product, key, value)
+
+    session.add(product)
+    session.commit()
+    session.refresh(product)
+
+    return product
