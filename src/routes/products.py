@@ -35,7 +35,7 @@ async def add_product(data: ProductSchema, user: str = Depends(check_access_toke
     return {"message": "Product created successfully", "product": product}
     
 @router.delete("/{product_id}")
-async def delete_product(product_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+async def remove_product(product_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
     
     if not user:

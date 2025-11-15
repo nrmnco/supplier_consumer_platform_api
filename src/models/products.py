@@ -8,7 +8,6 @@ class Products(SQLModel, table=True):
 
     name: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
-    # picture_url: str | None = Field(default=None, nullable=True)
     picture_url: list[str] | None = Field(sa_column=Column(JSON, nullable=True), default=None)
     stock_quantity: int = Field(nullable=False, default=0)
     

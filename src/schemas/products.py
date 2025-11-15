@@ -6,7 +6,7 @@ from sqlmodel import SQLModel
 class ProductSchema(SQLModel):
     name: str
     description: str
-    picture_url: str
+    picture_url: list[str]
     
     stock_quantity: int
     retail_price: int
