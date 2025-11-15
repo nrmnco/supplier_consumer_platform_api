@@ -19,5 +19,10 @@ def create_product(session: Session, data: ProductSchema, company_id: int) -> Pr
 
     return company
 
-
+def delete_product(session: Session, product_id: int) -> None:
+    product = session.get(Products, product_id)
+    
+    if product:
+        session.delete(product)
+        session.commit()
 
