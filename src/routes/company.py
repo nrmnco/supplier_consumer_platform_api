@@ -15,3 +15,4 @@ async def get_company(company_id: int, user: str = Depends(check_access_token), 
         raise HTTPException(status_code=404, detail="Company not found")
     
     return company
+
