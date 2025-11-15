@@ -21,7 +21,7 @@ async def register_company_with_owner(data: UserCompanySchema, session: Session 
         user = create_company_with_owner(session, data)
         access_token = create_token(data={"sub": user.email})
         refresh_token = create_token(data={"sub": user.email}, expires_delta=timedelta(days=7), refresh=True)
-        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+        return {"company_id": user.company_id, "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
     
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
