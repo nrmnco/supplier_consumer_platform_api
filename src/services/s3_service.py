@@ -25,7 +25,8 @@ class S3Service:
         url = self.s3.generate_presigned_post(
             Bucket=self.bucket_name,
             Key=key,
-            Conditions=[],
+            Fields={"acl": "public-read"},
+            Conditions=[{"acl": "public-read"}],
             ExpiresIn=120
         )
 

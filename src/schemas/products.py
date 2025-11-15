@@ -1,7 +1,4 @@
-from enum import Enum
 from sqlmodel import SQLModel
-
-
 
 class ProductSchema(SQLModel):
     name: str

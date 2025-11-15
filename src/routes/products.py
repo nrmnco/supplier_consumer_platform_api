@@ -47,7 +47,7 @@ async def remove_product(product_id: int, user: str = Depends(check_access_token
         raise HTTPException(status_code=404, detail="Company not found")
     
     if user.role not in ("owner", "manager") and company.type != "supplier":
-        raise HTTPException(status_code=403, detail="Insufficient permissions to create product")
+        raise HTTPException(status_code=403, detail="Insufficient permissions to delete product")
 
     delete_product(session, product_id)
 
@@ -66,7 +66,7 @@ async def put_product(product_id: int, data: ProductSchema, user: str = Depends(
         raise HTTPException(status_code=404, detail="Company not found")
     
     if user.role not in ("owner", "manager") and company.type != "supplier":
-        raise HTTPException(status_code=403, detail="Insufficient permissions to create product")
+        raise HTTPException(status_code=403, detail="Insufficient permissions to update product")
     
 
     product = update_product(session, product_id, data)
