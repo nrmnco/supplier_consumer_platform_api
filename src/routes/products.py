@@ -53,7 +53,7 @@ async def delete_product(product_id: int, user: str = Depends(check_access_token
 
     return {"message": f"Product with id {product_id} deleted successfully"}
 
-@router.update("/{product_id}")
+@router.put("/{product_id}")
 async def update_product(product_id: int, data: ProductSchema, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
     
