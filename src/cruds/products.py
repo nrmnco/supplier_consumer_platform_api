@@ -32,7 +32,7 @@ def update_product(session: Session, product_id: int, data: ProductSchema) -> Pr
     if not product:
         raise ValueError("Product not found")
 
-    for key, value in data.model_dump().items():
+    for key, value in data.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
 
     session.add(product)
