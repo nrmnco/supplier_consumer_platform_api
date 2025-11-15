@@ -5,3 +5,6 @@ class Cities(SQLModel, table=True):
 
     city_id: int | None = Field(primary_key=True, default=None)
     city_name: str = Field(unique=True, nullable=False)
+    city_name_ru: str = Field(unique=True, nullable=False)
+    city_name_kz: str = Field(unique=True, nullable=False)
+    
