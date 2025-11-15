@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Field, Relationship
 class Products(SQLModel, table=True):
     __tablename__ = "products"
 
-    proudct_id: int | None = Field(primary_key=True, default=None)
+    product_id: int | None = Field(primary_key=True, default=None)
     company_id: int | None = Field(foreign_key="companies.company_id", default=None)
 
     name: str = Field(nullable=False)
