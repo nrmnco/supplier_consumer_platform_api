@@ -3,8 +3,9 @@ from sqlmodel import Session
 
 from src.core.database import get_session
 from src.core.security import check_access_token
-from src.cruds.user import get_user_by_email, get_user_by_id, get_all_users
-from src.models.users import UserRole
+from src.cruds.user import delete_user, get_user_by_email, get_user_by_id, get_user_by_phone, get_all_users, create_user
+from src.models.users import UserRole, Users
+from src.schemas.authentication import UserSchema
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -45,3 +46,62 @@ async def all_users(user: str = Depends(check_access_token), session: Session = 
     users = get_all_users(session, user.company_id)
     
     return {"users": users}
+
+
+
+@router.post("/")
+async def add_user(new_user: UserSchema, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    email = user.get("sub")
+    
+    user = get_user_by_email(session, email)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.role == UserRole.staff:
+        raise HTTPException(status_code=403, detail="Insufficient permissions to add new users")
+    
+    if user.role == UserRole.manager and new_user.role != UserRole.staff:
+        raise HTTPException(status_code=403, detail="Managers can only add staff users")
+    
+    if new_user.role == UserRole.owner:
+        raise HTTPException(status_code=403, detail="Cannot create another owner user")
+    
+    if get_user_by_email(session, new_user.email):
+        raise HTTPException(status_code=400, detail="A user with this email already exists")
+    
+    if get_user_by_phone(session, new_user.phone_number):
+        raise HTTPException(status_code=400, detail="A user with this phone number already exists")
+
+    new_user1 = create_user(session, new_user, user.company_id)
+
+    return {"users": new_user1}
+
+@router.delete("/{user_id}")
+async def remove_user(user_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    email = user.get("sub")
+    
+    requesting_user = get_user_by_email(session, email)
+
+    if not requesting_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if requesting_user.role == UserRole.staff:
+        raise HTTPException(status_code=403, detail="Insufficient permissions to delete users")
+    
+    user_to_delete = get_user_by_id(session, user_id)
+
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User to delete not found")
+
+    if requesting_user.role == UserRole.manager and user_to_delete.role != UserRole.staff:
+            raise HTTPException(status_code=403, detail="Managers can only delete staff users")
+    
+    if requesting_user.user_id == user_id:
+        raise HTTPException(status_code=400, detail="Users cannot delete themselves")
+    
+    success = delete_user(session, user_to_delete)
+    if not success:
+        raise HTTPException(status_code=404, detail="User to delete not found")
+    
+    return {"message": "User deleted successfully"}
