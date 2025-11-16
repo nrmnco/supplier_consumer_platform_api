@@ -105,3 +105,14 @@ async def remove_user(user_id: int, user: str = Depends(check_access_token), ses
         raise HTTPException(status_code=404, detail="User to delete not found")
     
     return {"message": "User deleted successfully"}
+
+# @router.put("/{user_id}")
+# async def update_user(updated_user: UserSchema, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+#     email = user.get("sub")
+
+#     user = get_user_by_email(session, email)
+
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+    
+    

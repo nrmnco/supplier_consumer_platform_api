@@ -19,5 +19,7 @@ class Products(SQLModel, table=True):
     minimum_order: int = Field(nullable=False, default=1)
     unit: str = Field(nullable=False)
 
+    is_available: bool = Field(nullable=False, default=True)
+
     company: "Companies" = Relationship(back_populates="products")
     order_products: list["OrderProducts"] = Relationship(back_populates="product")

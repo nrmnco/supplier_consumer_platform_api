@@ -2,8 +2,8 @@ from sqlmodel import Session, select
 from src.models.products import Products
 from src.schemas.products import ProductSchema
 
-def get_all_products(session: Session) -> list[Products]:
-    products = session.exec(select(Products)).all()
+def get_all_products(session: Session, company_id: int) -> list[Products]:
+    products = session.exec(select(Products).where((Products.is_available == True) | (Products.company_id == company_id))).all()
     return products
 
 def create_product(session: Session, data: ProductSchema, company_id: int) -> Products:
@@ -23,7 +23,7 @@ def delete_product(session: Session, product_id: int) -> None:
     product = session.get(Products, product_id)
 
     if product:
-        session.delete(product)
+        product.is_available = False
         session.commit()
 
 def update_product(session: Session, product_id: int, data: ProductSchema) -> Products:

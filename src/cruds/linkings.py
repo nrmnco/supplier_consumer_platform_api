@@ -21,3 +21,23 @@ def get_linkings_by_company(session: Session, company_id: int):
     )
     results = session.exec(statement).all()
     return results
+
+def check_if_exists(session: Session, consumer_company_id: int, supplier_company_id: int):
+    linking = session.exec(select(Linkings).where(
+        (Linkings.consumer_company_id == consumer_company_id) & (Linkings.supplier_company_id == supplier_company_id)
+        )).first()
+    
+    if not linking:
+        return False
+    
+    return True
+
+def check_if_linked(session: Session, consumer_company_id: int, supplier_company_id: int):
+    linking = session.exec(select(Linkings).where(
+        (Linkings.consumer_company_id == consumer_company_id) & (Linkings.supplier_company_id == supplier_company_id) & (Linkings.status == LinkingStatus.accepted)
+        )).first()
+    
+    if not linking:
+        return False
+    
+    return True

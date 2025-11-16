@@ -5,7 +5,7 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.cruds.company import get_company_by_id
 from src.cruds.user import get_user_by_email
-from src.cruds.linkings import create_linking, get_linkings_by_company
+from src.cruds.linkings import create_linking, get_linkings_by_company, check_if_exists
 from src.schemas.linkings import LinkingSchema
 
 router = APIRouter(prefix="/linkings", tags=["linkings"])
@@ -21,6 +21,12 @@ async def add_linking(company_id: int, data: LinkingSchema, user: str = Depends(
 
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
+    
+    if check_if_exists(session, company.company_id, company_id):
+        raise HTTPException(status_code=400, detail="Already sent request")
+    
+    if company.company_type == "supplier":
+        raise HTTPException(status_code=403, detail="Supplier can not send request to linking")
     
     if company.company_type != "consumer":
         raise HTTPException(status_code=403, detail="Insufficient permissions to send linking request")
