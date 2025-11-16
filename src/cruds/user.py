@@ -2,6 +2,7 @@ from sqlmodel import Session, select
 from src.core.security import hash_password
 from src.models.users import Users, UserStatus
 from src.schemas.authentication import UserSchema
+from src.schemas.update_user import UpdateUserSchema
 
 def get_user_by_email(session: Session, email: str) -> Users | None:
     return session.exec(select(Users).where(Users.email == email)).first()
@@ -33,3 +34,17 @@ def delete_user(session: Session, user: Users) -> bool:
         session.commit()
         return True
     return False
+
+def update_user(session: Session, updated_user: UpdateUserSchema, user_id: int) -> Users:
+    user = session.get(Users, user_id)
+    password = updated_user.hashed_password
+    updated_user.hashed_password = hash_password(password)
+
+    for key, value in updated_user.model_dump(exclude_unset=True).items():
+        setattr(user, key, value)
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user

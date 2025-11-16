@@ -3,9 +3,10 @@ from sqlmodel import Session
 
 from src.core.database import get_session
 from src.core.security import check_access_token
-from src.cruds.user import delete_user, get_user_by_email, get_user_by_id, get_user_by_phone, get_all_users, create_user
-from src.models.users import UserRole, Users
+from src.cruds.user import delete_user, get_user_by_email, get_user_by_id, get_user_by_phone, get_all_users, create_user, update_user
+from src.models.users import UserRole
 from src.schemas.authentication import UserSchema
+from src.schemas.update_user import UpdateUserSchema
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -106,13 +107,19 @@ async def remove_user(user_id: int, user: str = Depends(check_access_token), ses
     
     return {"message": "User deleted successfully"}
 
-# @router.put("/{user_id}")
-# async def update_user(updated_user: UserSchema, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
-#     email = user.get("sub")
+@router.put("/{user_id}")
+async def put_user(updated_user: UpdateUserSchema, user_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    email = user.get("sub")
 
-#     user = get_user_by_email(session, email)
+    user = get_user_by_email(session, email)
 
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
+    if user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Can not update another user's profile")
+    
+    result_user = update_user(session, updated_user, user_id)     
+
+    return {"user": result_user}
     
