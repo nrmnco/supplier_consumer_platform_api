@@ -5,7 +5,7 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.cruds.company import get_company_by_id
 from src.cruds.user import get_user_by_email
-from src.cruds.linkings import create_linking
+from src.cruds.linkings import create_linking, get_linkings_by_company
 from src.schemas.linkings import LinkingSchema
 
 router = APIRouter(prefix="/linkings", tags=["linkings"])
@@ -25,7 +25,36 @@ async def add_linking(company_id: int, data: LinkingSchema, user: str = Depends(
     if company.company_type != "consumer":
         raise HTTPException(status_code=403, detail="Insufficient permissions to send linking request")
     
+    supplier_company = get_company_by_id(session, company_id)
+
+    if not supplier_company:
+        raise HTTPException(status_code=404, detail="Supplier company not found")
+    
+    if supplier_company.company_type != "supplier":
+        raise HTTPException(status_code=400, detail="The specified company is not a supplier")
+
     linking = create_linking(session, data, consumer_company_id=company.company_id, requested_user_id=user.user_id, company_id=company_id)
 
     return {"message": "Linking request created successfully", "linking": linking}
+
+@router.get("/")
+async def get_linkings(user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    company = get_company_by_id(session, user.company_id)
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    if company.company_type != "supplier":
+        raise HTTPException(status_code=403, detail="Insufficient permissions to view linkings")
+    
+    linkings = get_linkings_by_company(session, company.company_id)
+
+    return {"linkings": linkings}
+    
+
 

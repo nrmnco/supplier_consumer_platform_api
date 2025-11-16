@@ -14,3 +14,10 @@ def create_linking(session: Session, data: LinkingSchema, consumer_company_id: i
     session.refresh(linking)
 
     return linking
+
+def get_linkings_by_company(session: Session, company_id: int):
+    statement = select(Linkings).where(
+        (Linkings.supplier_company_id == company_id) | (Linkings.status == LinkingStatus.pending)
+    )
+    results = session.exec(statement).all()
+    return results
