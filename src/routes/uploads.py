@@ -16,3 +16,11 @@ async def get_upload_url(ext: str, user: str = Depends(check_access_token)):
 async def store_company_photo(company_id: int, file_url: str, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     updated_company = store_company_url(session, company_id, file_url)
     return {"message": "Logo stored successfully", "company": updated_company}
+
+@router.delete("/delete-file")
+async def delete_file(file_url: str, user: str = Depends(check_access_token)):
+    success = s3_service.delete_file_by_url(file_url)
+    if success:
+        return {"message": "File deleted successfully"}
+    else:
+        return {"message": "Failed to delete file"}

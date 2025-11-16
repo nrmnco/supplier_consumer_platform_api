@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from src.core.database import get_session
-from src.cruds.authentication import create_company_with_owner, authenticate_user, get_user_by_email
+from src.cruds.authentication import create_company_with_owner, authenticate_user
+from src.cruds.user import get_user_by_phone, get_user_by_email
 from src.schemas.authentication import UserCompanySchema, UserLoginSchema
 from src.core.jwt import create_token, decode_token
 
@@ -17,6 +18,11 @@ async def register_company_with_owner(data: UserCompanySchema, session: Session 
     if user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
     
+    user = get_user_by_phone(session, data.user.phone_number)
+
+    if user:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this phone number already exists")
+
     try:
         user = create_company_with_owner(session, data)
         access_token = create_token(data={"sub": user.email})

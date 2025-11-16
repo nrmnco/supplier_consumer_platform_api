@@ -21,7 +21,6 @@ class S3Service:
         
         key = f"uploads/{uuid4()}.{ext}"
 
-        print(self.bucket_name)
         url = self.s3.generate_presigned_post(
             Bucket=self.bucket_name,
             Key=key,
@@ -32,5 +31,19 @@ class S3Service:
         finalurl = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{key}"
 
         return url, finalurl
+    
+    def delete_file_by_url(self, url: str):
+        try:
+            url_splitted = url.split("/")
+            key = url_splitted[-2] + "/" + url_splitted[-1]
+
+            self.s3.delete_object(
+                Bucket=self.bucket_name,
+                Key=key
+            )
+            return True
+        except Exception as e:
+            print("Error deleting S3 object:", e)
+            return False
 
 s3_service = S3Service()

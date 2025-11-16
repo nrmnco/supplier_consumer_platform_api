@@ -6,7 +6,7 @@ def create_linking(session: Session, data: LinkingSchema, consumer_company_id: i
     linking_data = data
 
     # Create linking instance
-    linking = Linkings(**linking_data.model_dump(), company_id=company_id, consumer_company_id=consumer_company_id, requested_by_user_id=requested_user_id, status=LinkingStatus.pending)
+    linking = Linkings(**linking_data.model_dump(), supplier_company_id=company_id, consumer_company_id=consumer_company_id, requested_by_user_id=requested_user_id, status=LinkingStatus.pending)
     session.add(linking)
     session.flush()
 

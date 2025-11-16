@@ -65,7 +65,7 @@ async def put_product(product_id: int, data: ProductSchema, user: str = Depends(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    if user.role not in ("owner", "manager") and company.type != "supplier":
+    if user.role not in ("owner", "manager") and company.company_type != "supplier":
         raise HTTPException(status_code=403, detail="Insufficient permissions to update product")
     
 
