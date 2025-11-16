@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from src.core.security import hash_password
-from src.models.users import Users
+from src.models.users import Users, UserStatus
 from src.schemas.authentication import UserSchema
 
 def get_user_by_email(session: Session, email: str) -> Users | None:
@@ -29,7 +29,7 @@ def create_user(session: Session, user: UserSchema, company_id: int) -> Users:
 
 def delete_user(session: Session, user: Users) -> bool:
     if user:
-        session.delete(user)
+        user.status = UserStatus.suspended
         session.commit()
         return True
     return False
