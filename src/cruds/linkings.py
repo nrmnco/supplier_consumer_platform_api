@@ -18,7 +18,7 @@ def create_linking(session: Session, data: LinkingSchema, consumer_company_id: i
 
 def get_linkings_by_company(session: Session, company_id: int):
     statement = select(Linkings).where(
-        (Linkings.supplier_company_id == company_id) | (Linkings.status == LinkingStatus.pending)
+        (Linkings.supplier_company_id == company_id) & (Linkings.status == LinkingStatus.pending)
     )
     results = session.exec(statement).all()
     return results
@@ -43,7 +43,7 @@ def check_if_linked(session: Session, consumer_company_id: int, supplier_company
     
     return True
 
-def update_due_response(session: Session, linking_id: int, responded_user_id: int, status: LinkingStatus):
+def update_due_response(session: Session, linking_id: int, responded_user_id: int, status: str):
     linking = session.get(Linkings, linking_id)
 
     if not linking:

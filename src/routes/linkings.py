@@ -5,7 +5,7 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.cruds.company import get_company_by_id
 from src.cruds.user import get_user_by_email
-from src.cruds.linkings import create_linking, get_linkings_by_company, check_if_exists
+from src.cruds.linkings import create_linking, get_linkings_by_company, check_if_exists, update_due_response
 from src.schemas.linkings import LinkingSchema
 
 router = APIRouter(prefix="/linkings", tags=["linkings"])
@@ -64,7 +64,7 @@ async def get_linkings(user: str = Depends(check_access_token), session: Session
     
 
 @router.patch("/supplier_response/{linking_id}")
-async def supplier_response(linking_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+async def supplier_response(linking_id: int, status: str, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
     
     company = get_company_by_id(session, user.company_id)
@@ -72,5 +72,7 @@ async def supplier_response(linking_id: int, user: str = Depends(check_access_to
     if company.company_type != "supplier":
         raise HTTPException(status_code=403, detail="Insufficient permissions to view linkings")
     
-    
+    linking = update_due_response(session, linking_id, user.user_id, status)
+
+    return {"linking": linking}
 
