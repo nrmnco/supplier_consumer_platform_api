@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlmodel import Session, select
 from src.models.linkings import Linkings, LinkingStatus
 from src.schemas.linkings import LinkingSchema
@@ -41,3 +42,19 @@ def check_if_linked(session: Session, consumer_company_id: int, supplier_company
         return False
     
     return True
+
+def update_due_response(session: Session, linking_id: int, responded_user_id: int, status: LinkingStatus):
+    linking = session.get(Linkings, linking_id)
+
+    if not linking:
+        raise ValueError("Linking not found")
+    
+    setattr(linking, 'status', status)
+    setattr(linking, 'responded_by_user_id', responded_user_id)
+    setattr(linking, 'assigned_salesman_user_id', responded_user_id)
+    setattr(linking, 'updated_at', datetime.now())
+
+    session.commit()
+    session.refresh(linking)
+    
+    return linking

@@ -63,4 +63,14 @@ async def get_linkings(user: str = Depends(check_access_token), session: Session
     return {"linkings": linkings}
     
 
+@router.patch("/supplier_response/{linking_id}")
+async def supplier_response(linking_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
+    
+    company = get_company_by_id(session, user.company_id)
+    
+    if company.company_type != "supplier":
+        raise HTTPException(status_code=403, detail="Insufficient permissions to view linkings")
+    
+    
 
