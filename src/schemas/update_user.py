@@ -8,4 +8,3 @@ class UpdateUserSchema(SQLModel):
     phone_number: str
 
     email: str
-    hashed_password: str

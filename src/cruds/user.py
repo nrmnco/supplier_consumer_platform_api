@@ -37,8 +37,6 @@ def delete_user(session: Session, user: Users) -> bool:
 
 def update_user(session: Session, updated_user: UpdateUserSchema, user_id: int) -> Users:
     user = session.get(Users, user_id)
-    password = updated_user.hashed_password
-    updated_user.hashed_password = hash_password(password)
 
     for key, value in updated_user.model_dump(exclude_unset=True).items():
         setattr(user, key, value)

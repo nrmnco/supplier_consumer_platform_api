@@ -116,6 +116,12 @@ async def put_user(updated_user: UpdateUserSchema, user_id: int, user: str = Dep
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    if get_user_by_email(session, updated_user.email)and user.email != updated_user.email:
+        raise HTTPException(status_code=409, detail="This email already exists")
+    
+    if get_user_by_phone(session, updated_user.phone_number) and user.phone_number != updated_user.phone_number:
+        raise HTTPException(status_code=409, detail="This phone already exists")
+    
     if user.user_id != user_id:
         raise HTTPException(status_code=403, detail="Can not update another user's profile")
     
