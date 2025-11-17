@@ -142,6 +142,49 @@ def get_ordered_products_for_company(company_id: int, session: Session):
     return products_list
 
 
+def get_products_for_order(order_id: int, session: Session):
+    # Get all order products for this order
+    statement = (
+        select(OrderProducts)
+        .where(OrderProducts.order_id == order_id)
+    )
+    
+    order_products = session.exec(statement).all()
+    
+    if not order_products:
+        return []
+    
+    # Get all product IDs and fetch products in one query
+    product_ids = [op.product_id for op in order_products]
+    
+    products_statement = (
+        select(Products)
+        .where(Products.product_id.in_(product_ids))
+    )
+    products = session.exec(products_statement).all()
+    products_dict = {product.product_id: product for product in products}
+    
+    # Format the results to return products with order product information
+    products_list = []
+    for order_product in order_products:
+        # Get the product details
+        product = products_dict.get(order_product.product_id)
+        if not product:
+            continue
+            
+        products_list.append({
+            "product_id": product.product_id,
+            "product_name": product.name,
+            "product_description": product.description,
+            "product_picture_url": product.picture_url,
+            "quantity": order_product.product_quantity,
+            "price": order_product.product_price,
+            "unit": product.unit
+        })
+    
+    return products_list
+
+
 def update_order_status(order_id: int, new_status: OrderStatus, session: Session):
     order = get_order_by_id(order_id, session)
     if not order:

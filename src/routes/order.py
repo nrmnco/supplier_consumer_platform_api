@@ -12,7 +12,8 @@ from src.cruds.order import (
     get_orders_for_company,
     get_order_by_id,
     update_order_status,
-    get_ordered_products_for_company
+    get_ordered_products_for_company,
+    get_products_for_order
 )
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
@@ -66,7 +67,20 @@ def get_order(order_id: int, user: str = Depends(check_access_token), session: S
     if user.company_id != linking.consumer_company_id and user.company_id != linking.supplier_company_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    return order
+    # Get products for this order
+    products = get_products_for_order(order_id, session)
+    
+    # Return order with products
+    return {
+        "order_id": order.order_id,
+        "linking_id": order.linking_id,
+        "consumer_staff_id": order.consumer_staff_id,
+        "total_price": order.total_price,
+        "status": order.status,
+        "created_at": order.created_at,
+        "updated_at": order.updated_at,
+        "products": products
+    }
 
 
 @router.patch("/{order_id}/status")
