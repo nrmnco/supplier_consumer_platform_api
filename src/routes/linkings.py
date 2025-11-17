@@ -72,19 +72,14 @@ async def get_linking_status_route(other_company_id: int, user: str = Depends(ch
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    # Verify the other company exists
     other_company = get_company_by_id(session, other_company_id)
     if not other_company:
         raise HTTPException(status_code=404, detail="Other company not found")
     
-    # Get linking status between user's company and the other company
     linking = get_linking_status(session, company.company_id, other_company_id)
     
     if not linking:
-        return {
-            "status": None,
-            "message": "No linking found between the companies"
-        }
+        raise HTTPException(status_code=404, detail="No linking found between the companies")
     
     return {
         "linking_id": linking.linking_id,
