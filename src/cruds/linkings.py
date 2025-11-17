@@ -55,6 +55,20 @@ def get_linking(session: Session, consumer_company_id: int, supplier_company_id:
     return linking
 
 
+def get_linking_status(session: Session, company_id_1: int, company_id_2: int):
+    """
+    Get linking status between two companies.
+    Works for both directions (supplier-consumer or consumer-supplier).
+    Returns the linking if found, None otherwise.
+    """
+    linking = session.exec(select(Linkings).where(
+        ((Linkings.consumer_company_id == company_id_1) & (Linkings.supplier_company_id == company_id_2))
+        | ((Linkings.consumer_company_id == company_id_2) & (Linkings.supplier_company_id == company_id_1))
+    )).first()
+    
+    return linking
+
+
 def update_due_response(session: Session, linking_id: int, responded_user_id: int, status: str):
     linking = session.get(Linkings, linking_id)
 

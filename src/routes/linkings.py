@@ -5,7 +5,7 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.cruds.company import get_company_by_id
 from src.cruds.user import get_user_by_email
-from src.cruds.linkings import create_linking, get_linkings_by_company, check_if_exists, update_due_response
+from src.cruds.linkings import create_linking, get_linkings_by_company, check_if_exists, update_due_response, get_linking_status
 from src.schemas.linkings import LinkingSchema
 
 router = APIRouter(prefix="/linkings", tags=["linkings"])
@@ -59,6 +59,43 @@ async def get_linkings(user: str = Depends(check_access_token), session: Session
 
     return {"linkings": linkings}
     
+
+@router.get("/status/{other_company_id}")
+async def get_linking_status_route(other_company_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    company = get_company_by_id(session, user.company_id)
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Verify the other company exists
+    other_company = get_company_by_id(session, other_company_id)
+    if not other_company:
+        raise HTTPException(status_code=404, detail="Other company not found")
+    
+    # Get linking status between user's company and the other company
+    linking = get_linking_status(session, company.company_id, other_company_id)
+    
+    if not linking:
+        return {
+            "status": None,
+            "message": "No linking found between the companies"
+        }
+    
+    return {
+        "linking_id": linking.linking_id,
+        "status": linking.status,
+        "consumer_company_id": linking.consumer_company_id,
+        "supplier_company_id": linking.supplier_company_id,
+        "message": linking.message,
+        "created_at": linking.created_at,
+        "updated_at": linking.updated_at
+    }
+
 
 @router.patch("/supplier_response/{linking_id}")
 async def supplier_response(linking_id: int, status: str, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
