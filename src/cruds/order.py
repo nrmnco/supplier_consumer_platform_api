@@ -32,7 +32,7 @@ def create_order(order_data: OrderCreate, linking_id: int, user_id: int, session
     order = Orders(
         linking_id=linking_id,
         consumer_staff_id=user_id,
-        total_proce=total_price,
+        total_price=total_price,
         status=OrderStatus.created
     )
     session.add(order)

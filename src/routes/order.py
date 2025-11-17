@@ -32,7 +32,7 @@ def create_new_order(order_data: OrderCreate, supplier_company_id: int, user: st
     
     try:
         order = create_order(order_data, linking.linking_id, user.user_id, session)
-        return {"order": order.model_dump()}
+        return {"order": order}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
