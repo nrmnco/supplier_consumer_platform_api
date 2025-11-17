@@ -55,9 +55,6 @@ async def get_linkings(user: str = Depends(check_access_token), session: Session
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    if company.company_type != "supplier":
-        raise HTTPException(status_code=403, detail="Insufficient permissions to view linkings")
-    
     linkings = get_linkings_by_company(session, company.company_id)
 
     return {"linkings": linkings}

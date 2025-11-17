@@ -43,6 +43,18 @@ def check_if_linked(session: Session, consumer_company_id: int, supplier_company
     
     return True
 
+
+def get_linking(session: Session, consumer_company_id: int, supplier_company_id: int):
+    linking = session.exec(select(Linkings).where(
+        (Linkings.consumer_company_id == consumer_company_id) & (Linkings.supplier_company_id == supplier_company_id) & (Linkings.status == LinkingStatus.accepted)
+        )).first()
+    
+    if not linking:
+        raise ValueError(f"Linking not found")
+    
+    return linking
+
+
 def update_due_response(session: Session, linking_id: int, responded_user_id: int, status: str):
     linking = session.get(Linkings, linking_id)
 
