@@ -6,6 +6,10 @@ def get_all_products(session: Session, company_id: int) -> list[Products]:
     products = session.exec(select(Products).where((Products.is_available == True) & (Products.company_id == company_id))).all()
     return products
 
+def get_product_by_id(session: Session, product_id: int) -> list[Products]:
+    product = session.get(Products, product_id)
+    return product
+
 def create_product(session: Session, data: ProductSchema, company_id: int) -> Products:
     product_data = data
 

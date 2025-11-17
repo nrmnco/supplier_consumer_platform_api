@@ -5,7 +5,7 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
-from src.cruds.products import create_product, get_all_products, delete_product, update_product
+from src.cruds.products import create_product, get_all_products, delete_product, update_product, get_product_by_id
 from src.cruds.linkings import check_if_linked
 from src.schemas.products import ProductSchema
 
@@ -33,6 +33,17 @@ async def all_products(company_id: int, user: str = Depends(check_access_token),
 
     products = get_all_products(session, user.company_id)
     return {"products": products}
+
+@router.get("/{product_id}")
+async def get_product(product_id:int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    email = user.get("sub")
+    user = get_user_by_email(session, email)
+
+    product = get_product_by_id(session, product_id)
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"products": product}
 
 
 @router.post("/")
