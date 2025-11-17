@@ -82,12 +82,73 @@ def get_orders_for_company(company_id: int, session: Session):
     return session.exec(statement).all()
 
 
-# def update_order_status(order_id: int, new_status: OrderStatus, session: Session):
-#     order = get_order_by_id(order_id, session)
-#     if not order:
-#         raise ValueError("Order not found")
+def get_ordered_products_for_company(company_id: int, session: Session):
+    # Get all orders for the company
+    orders = get_orders_for_company(company_id, session)
+    order_ids = [order.order_id for order in orders]
+    
+    if not order_ids:
+        return []
+    
+    # Create a dictionary for quick order lookup
+    orders_dict = {order.order_id: order for order in orders}
+    
+    # Get all order products for these orders
+    statement = (
+        select(OrderProducts)
+        .where(OrderProducts.order_id.in_(order_ids))
+    )
+    
+    order_products = session.exec(statement).all()
+    
+    # Get all product IDs and fetch products in one query
+    product_ids = [op.product_id for op in order_products]
+    if not product_ids:
+        return []
+    
+    products_statement = (
+        select(Products)
+        .where(Products.product_id.in_(product_ids))
+    )
+    products = session.exec(products_statement).all()
+    products_dict = {product.product_id: product for product in products}
+    
+    # Format the results to return products with order information
+    products_list = []
+    for order_product in order_products:
+        # Get the product details
+        product = products_dict.get(order_product.product_id)
+        if not product:
+            continue
+            
+        # Get the order for this order_product
+        order = orders_dict.get(order_product.order_id)
+        if order:
+            products_list.append({
+                "order_id": order.order_id,
+                "product_id": product.product_id,
+                "product_name": product.name,
+                "product_description": product.description,
+                "product_picture_url": product.picture_url,
+                "quantity": order_product.product_quantity,
+                "price": order_product.product_price,
+                "unit": product.unit,
+                "order_status": order.status,
+                "order_total_price": order.total_price,
+                "order_created_at": order.created_at,
+                "order_updated_at": order.updated_at
+            })
+    
+    return products_list
 
-#     order.status = new_status
-#     order.updated_at = datetime.now()
-#     session.commit()
-#     return order
+
+def update_order_status(order_id: int, new_status: OrderStatus, session: Session):
+    order = get_order_by_id(order_id, session)
+    if not order:
+        raise ValueError("Order not found")
+
+    order.status = new_status
+    order.updated_at = datetime.now()
+    session.commit()
+    session.refresh(order)
+    return order

@@ -10,7 +10,9 @@ from src.models.linkings import Linkings
 from src.cruds.order import (
     create_order,
     get_orders_for_company,
-    get_order_by_id
+    get_order_by_id,
+    update_order_status,
+    get_ordered_products_for_company
 )
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
@@ -44,7 +46,7 @@ def create_new_order(order_data: OrderCreate, supplier_company_id: int, user: st
 def get_all_orders(user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
 
-    return get_orders_for_company(user.company_id, session)
+    return get_ordered_products_for_company(user.company_id, session)
 
 
 @router.get("/{order_id}")
@@ -67,30 +69,38 @@ def get_order(order_id: int, user: str = Depends(check_access_token), session: S
     return order
 
 
-# @router.patch("/{order_id}/status", response_model=OrderRead)
-# def change_order_status(
-#     order_id: int,
-#     update_data: OrderStatusUpdate,
-#     user: str = Depends(check_access_token),
-#     session: Session = Depends(get_session)
-# ):
-#     user = get_user_by_email(session, user['sub'])
+@router.patch("/{order_id}/status")
+def change_order_status(
+    order_id: int,
+    status: str,
+    user: str = Depends(check_access_token),
+    session: Session = Depends(get_session)
+):
+    user = get_user_by_email(session, user['sub'])
 
-#     company = get_company_by_id(session, user.company_id)
-
-#     if company.company_type == "supplier":
-#         raise HTTPException(status_code=403, detail="Supplier can not order")
+    # Get the order
+    order = get_order_by_id(order_id, session)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
     
+    # Get the linking associated with the order
+    linking = session.get(Linkings, order.linking_id)
+    if not linking:
+        raise HTTPException(status_code=404, detail="Linking not found")
+    
+    # Check if user is from supplier company that is in the linking from order
+    if user.company_id != linking.supplier_company_id:
+        raise HTTPException(status_code=403, detail="Only supplier company can change order status")
 
-#     if update_data.status not in OrderStatus.__members__:
-#         raise HTTPException(status_code=400, detail="Invalid status")
+    if status not in OrderStatus.__members__:
+        raise HTTPException(status_code=400, detail="Invalid status")
 
-#     try:
-#         order = update_order_status(
-#             order_id,
-#             OrderStatus(update_data.status),
-#             session
-#         )
-#         return order
-#     except ValueError as e:
-#         raise HTTPException(status_code=404, detail=str(e))
+    try:
+        order = update_order_status(
+            order_id,
+            OrderStatus(status),
+            session
+        )
+        return order
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
