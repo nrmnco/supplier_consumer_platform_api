@@ -5,6 +5,7 @@ from src.routes.city import router as city_router
 from src.routes.company import router as company_router
 from src.routes.products import router as products_router
 from src.routes.linkings import router as linkings_router
+from src.routes.order import router as order_router
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -15,3 +16,4 @@ router.include_router(city_router)
 router.include_router(company_router)
 router.include_router(products_router)
 router.include_router(linkings_router)
+# router.include_router(order_router)
