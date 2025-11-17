@@ -8,6 +8,7 @@ from src.schemas.order import OrderCreate, OrderStatusUpdate
 from src.models.orders import OrderStatus
 from src.cruds.order import (
     create_order,
+    get_orders_for_company
 )
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
@@ -37,11 +38,11 @@ def create_new_order(order_data: OrderCreate, supplier_company_id: int, user: st
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# @router.get("/", response_model=List[OrderRead])
-# def get_all_orders(user: str = Depends(check_access_token), session: Session = Depends(get_session)):
-#     user = get_user_by_email(session, user['sub'])
+@router.get("/")
+def get_all_orders(user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
 
-#     return get_orders_for_company(user.company_id, session)
+    return get_orders_for_company(user.company_id, session)
 
 
 # @router.get("/{order_id}", response_model=OrderRead)

@@ -70,16 +70,16 @@ def create_order(order_data: OrderCreate, linking_id: int, user_id: int, session
 #     ).first()
 
 
-# def get_orders_for_company(company_id: int, session: Session):
-#     statement = (
-#         select(Orders)
-#         .join(Linkings)
-#         .where(
-#             (Linkings.supplier_company_id == company_id)
-#             | (Linkings.consumer_company_id == company_id)
-#         )
-#     )
-#     return session.exec(statement).all()
+def get_orders_for_company(company_id: int, session: Session):
+    statement = (
+        select(Orders)
+        .join(Linkings)
+        .where(
+            (Linkings.supplier_company_id == company_id)
+            | (Linkings.consumer_company_id == company_id)
+        )
+    )
+    return session.exec(statement).all()
 
 
 # def update_order_status(order_id: int, new_status: OrderStatus, session: Session):
