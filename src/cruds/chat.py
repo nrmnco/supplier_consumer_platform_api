@@ -57,6 +57,9 @@ def check_user_can_chat(session: Session, user_id: int, linking_id: int) -> bool
     linking = session.get(Linkings, linking_id)
     if not linking:
         return False
+
+    if linking.status != "accepted":
+        return False
     
     if linking.requested_by_user_id == user_id:
         return True
