@@ -6,9 +6,11 @@ from src.core.database import get_session
 from src.core.security import check_access_token
 from src.schemas.order import OrderCreate, OrderStatusUpdate
 from src.models.orders import OrderStatus
+from src.models.linkings import Linkings
 from src.cruds.order import (
     create_order,
-    get_orders_for_company
+    get_orders_for_company,
+    get_order_by_id
 )
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
@@ -45,14 +47,24 @@ def get_all_orders(user: str = Depends(check_access_token), session: Session = D
     return get_orders_for_company(user.company_id, session)
 
 
-# @router.get("/{order_id}", response_model=OrderRead)
-# def get_order(order_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
-#     user = get_user_by_email(session, user['sub'])
+@router.get("/{order_id}")
+def get_order(order_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
     
-#     order = get_order_by_id(order_id, session)
-#     if not order:
-#         raise HTTPException(status_code=404, detail="Order not found")
-#     return order
+    order = get_order_by_id(order_id, session)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get the linking associated with the order
+    linking = session.get(Linkings, order.linking_id)
+    if not linking:
+        raise HTTPException(status_code=404, detail="Linking not found")
+    
+    # Check if user's company is either consumer or supplier in the linking
+    if user.company_id != linking.consumer_company_id and user.company_id != linking.supplier_company_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return order
 
 
 # @router.patch("/{order_id}/status", response_model=OrderRead)

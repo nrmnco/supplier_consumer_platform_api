@@ -64,10 +64,10 @@ def create_order(order_data: OrderCreate, linking_id: int, user_id: int, session
     return order
 
 
-# def get_order_by_id(order_id: int, session: Session):
-#     return session.exec(
-#         select(Orders).where(Orders.order_id == order_id)
-#     ).first()
+def get_order_by_id(order_id: int, session: Session):
+    return session.exec(
+        select(Orders).where(Orders.order_id == order_id)
+    ).first()
 
 
 def get_orders_for_company(company_id: int, session: Session):
