@@ -122,7 +122,7 @@ async def put_user(updated_user: UpdateUserSchema, user_id: int, user: str = Dep
     if get_user_by_phone(session, updated_user.phone_number) and user.phone_number != updated_user.phone_number:
         raise HTTPException(status_code=409, detail="This phone already exists")
     
-    if user.user_id != user_id:
+    if user.user_id != user_id and user.role != "owner":
         raise HTTPException(status_code=403, detail="Can not update another user's profile")
     
     result_user = update_user(session, updated_user, user_id)     
