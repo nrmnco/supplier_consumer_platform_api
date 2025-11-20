@@ -28,7 +28,7 @@ async def all_products(company_id: int, user: str = Depends(check_access_token),
     if company.company_id == company_id and company.company_type == "consumer":
         raise HTTPException(status_code=404, detail="Consumer does not have products")
 
-    if not (check_if_linked(session, user.company_id, company_id) or user.company_id != company_id):
+    if not (check_if_linked(session, user.company_id, company_id) or user.company_id == company_id):
         raise HTTPException(status_code=403, detail="Insufficient permissions to view products")
 
     products = get_all_products(session, user.company_id)
