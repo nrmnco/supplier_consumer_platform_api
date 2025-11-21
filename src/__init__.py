@@ -6,6 +6,7 @@ from src.models.cities import Cities
 from src.core.database import create_db_and_tables
 from src.routes import router
 from src.core.database import engine
+from src.core.middleware import log_middleware
 
 KZ_CITIES = [
     {"en": "Almaty",      "ru": "Алматы",      "kz": "Алматы"},
@@ -51,12 +52,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.middleware("http")(log_middleware)
 
 app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "*",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
