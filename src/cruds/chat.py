@@ -4,11 +4,13 @@ from datetime import datetime
 from src.models.chats import Chats
 from src.models.messages import Messages, MessageType
 from src.models.linkings import Linkings
+from src.models.orders import Orders
+from src.models.users import Users, UserRole
 
 
 def get_or_create_chat_for_linking(session: Session, linking_id: int) -> Chats:
     chat = session.exec(
-        select(Chats).where(Chats.linking_id == linking_id)
+        select(Chats).where(Chats.linking_id == linking_id, Chats.order_id.is_(None))
     ).first()
     
     if not chat:
@@ -20,6 +22,14 @@ def get_or_create_chat_for_linking(session: Session, linking_id: int) -> Chats:
         session.commit()
         session.refresh(chat)
     
+    return chat
+
+
+def get_chat_for_order(session: Session, order_id: int) -> Chats | None:
+    """Get the chat for a specific order"""
+    chat = session.exec(
+        select(Chats).where(Chats.order_id == order_id)
+    ).first()
     return chat
 
 
@@ -69,3 +79,32 @@ def check_user_can_chat(session: Session, user_id: int, linking_id: int) -> bool
     
     return False
 
+
+def check_user_can_access_order_chat(session: Session, user_id: int, order_id: int) -> bool:
+    """Check if user can access order chat"""
+    order = session.get(Orders, order_id)
+    if not order:
+        return False
+    
+    linking = session.get(Linkings, order.linking_id)
+    if not linking:
+        return False
+    
+    user = session.get(Users, user_id)
+    if not user:
+        return False
+    
+    # Consumer who created the order
+    if order.consumer_staff_id == user_id:
+        return True
+    
+    # Assigned salesman
+    if linking.assigned_salesman_user_id == user_id:
+        return True
+    
+    # Managers and owners from supplier company
+    if user.role in [UserRole.manager, UserRole.owner]:
+        if user.company_id == linking.supplier_company_id:
+            return True
+    
+    return False

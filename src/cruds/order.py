@@ -5,6 +5,7 @@ from src.models.linkings import Linkings
 from src.models.orders import Orders, OrderStatus
 from src.models.order_products import OrderProducts
 from src.models.products import Products
+from src.models.chats import Chats
 from src.schemas.order import OrderCreate
 
 
@@ -38,6 +39,15 @@ def create_order(order_data: OrderCreate, linking_id: int, user_id: int, session
     session.add(order)
     session.commit()
     session.refresh(order)
+
+    # create order chat automatically
+    order_chat = Chats(
+        linking_id=linking_id,
+        order_id=order.order_id,
+        created_at=str(datetime.now())
+    )
+    session.add(order_chat)
+    session.commit()
 
     # add order products
     for item in order_data.products:

@@ -23,7 +23,7 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/")
-def create_new_order(order_data: OrderCreate, supplier_company_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+async def create_new_order(order_data: OrderCreate, supplier_company_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     user = get_user_by_email(session, user['sub'])
 
     company = get_company_by_id(session, user.company_id)

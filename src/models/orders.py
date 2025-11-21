@@ -7,6 +7,7 @@ class OrderStatus(str, Enum):
     processing = "processing"
     shipping = "shipping"
     completed = "completed"
+    rejected = "rejected"
 
 class Orders(SQLModel, table=True):
     __tablename__ = "orders"
