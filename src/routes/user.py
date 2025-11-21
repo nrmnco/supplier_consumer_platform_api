@@ -111,19 +111,31 @@ async def remove_user(user_id: int, user: str = Depends(check_access_token), ses
 async def put_user(updated_user: UpdateUserSchema, user_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
     email = user.get("sub")
 
-    user = get_user_by_email(session, email)
+    authenticated_user = get_user_by_email(session, email)
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not authenticated_user:
+        raise HTTPException(status_code=404, detail="Authenticated user not found")
     
-    if get_user_by_email(session, updated_user.email)and user.email != updated_user.email:
-        raise HTTPException(status_code=409, detail="This email already exists")
+    target_user = get_user_by_id(session, user_id)
     
-    if get_user_by_phone(session, updated_user.phone_number) and user.phone_number != updated_user.phone_number:
-        raise HTTPException(status_code=409, detail="This phone already exists")
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User to update not found")
+
+    if authenticated_user.user_id != user_id:
+        if authenticated_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Can not update another user's profile")
+        if authenticated_user.company_id != target_user.company_id:
+            raise HTTPException(status_code=403, detail="Can not update users from another company")
     
-    if user.user_id != user_id and user.role != "owner":
-        raise HTTPException(status_code=403, detail="Can not update another user's profile")
+    if updated_user.email:
+        existing_user_with_email = get_user_by_email(session, updated_user.email)
+        if existing_user_with_email and existing_user_with_email.user_id != user_id:
+            raise HTTPException(status_code=409, detail="This email already exists")
+    
+    if updated_user.phone_number:
+        existing_user_with_phone = get_user_by_phone(session, updated_user.phone_number)
+        if existing_user_with_phone and existing_user_with_phone.user_id != user_id:
+            raise HTTPException(status_code=409, detail="This phone already exists")
     
     result_user = update_user(session, updated_user, user_id)     
 
