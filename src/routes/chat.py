@@ -13,6 +13,7 @@ from src.cruds.chat import (
     check_user_can_chat
 )
 from src.models.messages import MessageType
+from src.schemas.chat import ChatHistoryResponse
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -163,7 +164,7 @@ async def websocket_chat(websocket: WebSocket, linking_id: int):
         await websocket.close(code=1011, reason=f"Server error: {str(e)}")
 
 
-@router.get("/messages/{linking_id}")
+@router.get("/messages/{linking_id}", response_model=ChatHistoryResponse)
 async def get_chat_messages(
     linking_id: int,
     limit: int = 100,
@@ -346,7 +347,7 @@ async def websocket_order_chat(websocket: WebSocket, order_id: int):
         await websocket.close(code=1011, reason=f"Server error: {str(e)}")
 
 
-@router.get("/messages/order/{order_id}")
+@router.get("/messages/order/{order_id}", response_model=ChatHistoryResponse)
 async def get_order_chat_messages(
     order_id: int,
     limit: int = 100,
