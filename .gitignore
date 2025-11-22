@@ -17,3 +17,6 @@ myenv/
 .idea/
 *.swp
 
+# ===== macOS =====
+.DS_Store
+
