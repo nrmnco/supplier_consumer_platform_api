@@ -7,6 +7,8 @@ class MessageType(str, Enum):
     audio = "audio"
     image = "image"
     file = "file"
+    complaint = "complaint"
+    order = "order"
 
 class Messages(SQLModel, table=True):
     __tablename__ = "messages"

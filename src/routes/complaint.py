@@ -72,7 +72,23 @@ async def create_complaint_for_order(
         )
     
     try:
-        complaint = create_complaint(session, order_id, user_obj.user_id, complaint_data)
+        complaint, message = create_complaint(session, order_id, user_obj.user_id, complaint_data)
+        
+        # Broadcast system message
+        if message:
+            from src.routes.chat import broadcast_order_message
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(order_id, broadcast_data)
+            
         return {
             "message": "Complaint created successfully",
             "complaint": complaint
@@ -394,12 +410,28 @@ async def escalate_complaint_route(
         )
     
     try:
-        updated_complaint = escalate_complaint(
+        updated_complaint, message = escalate_complaint(
             session,
             complaint_id,
             user_obj.user_id,
             update_data.notes
         )
+        
+        # Broadcast system message
+        if message:
+            from src.routes.chat import broadcast_order_message
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(complaint.order_id, broadcast_data)
+            
         return {
             "message": "Complaint escalated successfully",
             "complaint": updated_complaint
@@ -444,7 +476,24 @@ async def claim_complaint_route(
         )
     
     try:
-        updated_complaint = claim_complaint(session, complaint_id, user_obj.user_id)
+        updated_complaint, message = claim_complaint(session, complaint_id, user_obj.user_id)
+        
+        # Broadcast system message
+        if message:
+            from src.routes.chat import broadcast_order_message
+            # Need to get order_id from updated_complaint
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(updated_complaint.order_id, broadcast_data)
+            
         return {
             "message": "Complaint claimed successfully",
             "complaint": updated_complaint
@@ -520,13 +569,29 @@ async def resolve_complaint_route(
         )
     
     try:
-        updated_complaint = resolve_complaint(
+        updated_complaint, message = resolve_complaint(
             session,
             complaint_id,
             user_obj.user_id,
             resolve_data.resolution_notes,
             resolve_data.cancel_order
         )
+        
+        # Broadcast system message
+        if message:
+            from src.routes.chat import broadcast_order_message
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(updated_complaint.order_id, broadcast_data)
+            
         return {
             "message": "Complaint resolved successfully",
             "complaint": updated_complaint,
@@ -588,13 +653,29 @@ async def close_complaint_route(
         )
     
     try:
-        updated_complaint = close_complaint(
+        updated_complaint, message = close_complaint(
             session,
             complaint_id,
             user_obj.user_id,
             resolve_data.resolution_notes,
             resolve_data.cancel_order
         )
+        
+        # Broadcast system message
+        if message:
+            from src.routes.chat import broadcast_order_message
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(updated_complaint.order_id, broadcast_data)
+            
         return {
             "message": "Complaint closed successfully",
             "complaint": updated_complaint,

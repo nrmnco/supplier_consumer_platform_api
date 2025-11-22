@@ -84,7 +84,7 @@ def get_order(order_id: int, user: str = Depends(check_access_token), session: S
 
 
 @router.patch("/{order_id}/status")
-def change_order_status(
+async def change_order_status(
     order_id: int,
     status: str,
     user: str = Depends(check_access_token),
@@ -110,11 +110,29 @@ def change_order_status(
         raise HTTPException(status_code=400, detail="Invalid status")
 
     try:
-        order = update_order_status(
+        order, message = update_order_status(
             order_id,
             OrderStatus(status),
+            user.user_id,
             session
         )
+        
+        # Broadcast system message if created
+        if message:
+            from src.routes.chat import broadcast_order_message
+            
+            broadcast_data = {
+                "type": "message",
+                "message_id": message.message_id,
+                "chat_id": message.chat_id,
+                "sender_id": message.sender_id,
+                "sender_name": f"{user.first_name} {user.last_name}",
+                "body": message.body,
+                "message_type": message.type,
+                "sent_at": message.sent_at
+            }
+            await broadcast_order_message(order.order_id, broadcast_data)
+            
         return order
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

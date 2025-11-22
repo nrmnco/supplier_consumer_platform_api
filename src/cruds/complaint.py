@@ -14,8 +14,11 @@ def create_complaint(
     order_id: int,
     consumer_staff_id: int,
     complaint_data: CreateComplaint
-) -> Complaints:
+):
     """Create a new complaint for an order"""
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
     # Get the order to find the assigned salesman
     order = session.get(Orders, order_id)
     if not order:
@@ -50,7 +53,253 @@ def create_complaint(
     session.add(history)
     session.commit()
     
-    return complaint
+    # Create system message
+    message = create_system_message(
+        session,
+        order_id,
+        consumer_staff_id,
+        MessageType.complaint,
+        {
+            "event": "status_change",
+            "entity": "complaint",
+            "id": complaint.complaint_id,
+            "old_status": None,
+            "new_status": ComplaintStatus.open
+        }
+    )
+    
+    return complaint, message
+
+
+def escalate_complaint(
+    session: Session,
+    complaint_id: int,
+    salesman_id: int,
+    notes: str | None = None
+):
+    """Escalate a complaint from salesman to manager"""
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
+    complaint = session.get(Complaints, complaint_id)
+    if not complaint:
+        raise ValueError("Complaint not found")
+    
+    if complaint.status != ComplaintStatus.open:
+        raise ValueError("Only open complaints can be escalated")
+    
+    old_status = complaint.status
+    complaint.status = ComplaintStatus.escalated
+    complaint.updated_at = str(datetime.now())
+    session.add(complaint)
+    
+    # Add history entry
+    history = ComplaintHistory(
+        complaint_id=complaint_id,
+        changed_by_user_id=salesman_id,
+        new_status=ComplaintStatus.escalated,
+        notes=notes or "Escalated to manager",
+        updated_at=str(datetime.now())
+    )
+    session.add(history)
+    session.commit()
+    session.refresh(complaint)
+    
+    # Create system message
+    message = create_system_message(
+        session,
+        complaint.order_id,
+        salesman_id,
+        MessageType.complaint,
+        {
+            "event": "status_change",
+            "entity": "complaint",
+            "id": complaint_id,
+            "old_status": old_status,
+            "new_status": ComplaintStatus.escalated
+        }
+    )
+    
+    return complaint, message
+
+
+def claim_complaint(
+    session: Session,
+    complaint_id: int,
+    manager_id: int
+):
+    """Manager claims an escalated complaint"""
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
+    complaint = session.get(Complaints, complaint_id)
+    if not complaint:
+        raise ValueError("Complaint not found")
+    
+    if complaint.status != ComplaintStatus.escalated:
+        raise ValueError("Only escalated complaints can be claimed")
+    
+    if complaint.escalated_to_manager_id is not None:
+        raise ValueError("Complaint already claimed by another manager")
+    
+    old_status = complaint.status
+    complaint.status = ComplaintStatus.in_progress
+    complaint.escalated_to_manager_id = manager_id
+    complaint.updated_at = str(datetime.now())
+    session.add(complaint)
+    
+    # Add history entry
+    history = ComplaintHistory(
+        complaint_id=complaint_id,
+        changed_by_user_id=manager_id,
+        new_status=ComplaintStatus.in_progress,
+        notes="Manager claimed complaint",
+        updated_at=str(datetime.now())
+    )
+    session.add(history)
+    session.commit()
+    session.refresh(complaint)
+    
+    # Create system message
+    message = create_system_message(
+        session,
+        complaint.order_id,
+        manager_id,
+        MessageType.complaint,
+        {
+            "event": "status_change",
+            "entity": "complaint",
+            "id": complaint_id,
+            "old_status": old_status,
+            "new_status": ComplaintStatus.in_progress
+        }
+    )
+    
+    return complaint, message
+
+
+def resolve_complaint(
+    session: Session,
+    complaint_id: int,
+    user_id: int,
+    resolution_notes: str,
+    cancel_order: bool = False
+):
+    """Resolve a complaint (by salesman or manager)"""
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
+    complaint = session.get(Complaints, complaint_id)
+    if not complaint:
+        raise ValueError("Complaint not found")
+    
+    if complaint.status not in [ComplaintStatus.open, ComplaintStatus.in_progress]:
+        raise ValueError("Only open or in-progress complaints can be resolved")
+    
+    old_status = complaint.status
+    complaint.status = ComplaintStatus.resolved
+    complaint.resolution_notes = resolution_notes
+    complaint.updated_at = str(datetime.now())
+    session.add(complaint)
+    
+    # If manager wants to cancel the order
+    if cancel_order:
+        order = session.get(Orders, complaint.order_id)
+        if order:
+            order.status = OrderStatus.rejected
+            order.updated_at = str(datetime.now())
+            session.add(order)
+    
+    # Add history entry
+    history = ComplaintHistory(
+        complaint_id=complaint_id,
+        changed_by_user_id=user_id,
+        new_status=ComplaintStatus.resolved,
+        notes=f"Resolved: {resolution_notes}" + (" (Order cancelled)" if cancel_order else ""),
+        updated_at=str(datetime.now())
+    )
+    session.add(history)
+    session.commit()
+    session.refresh(complaint)
+    
+    # Create system message
+    message = create_system_message(
+        session,
+        complaint.order_id,
+        user_id,
+        MessageType.complaint,
+        {
+            "event": "status_change",
+            "entity": "complaint",
+            "id": complaint_id,
+            "old_status": old_status,
+            "new_status": ComplaintStatus.resolved
+        }
+    )
+    
+    return complaint, message
+
+
+def close_complaint(
+    session: Session,
+    complaint_id: int,
+    manager_id: int,
+    notes: str | None = None,
+    cancel_order: bool = False
+):
+    """Close a complaint (reject it) - manager only"""
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
+    complaint = session.get(Complaints, complaint_id)
+    if not complaint:
+        raise ValueError("Complaint not found")
+    
+    if complaint.status != ComplaintStatus.in_progress:
+        raise ValueError("Only in-progress complaints can be closed")
+    
+    old_status = complaint.status
+    complaint.status = ComplaintStatus.closed
+    complaint.resolution_notes = notes or "Complaint closed"
+    complaint.updated_at = str(datetime.now())
+    session.add(complaint)
+    
+    # If manager wants to cancel the order
+    if cancel_order:
+        order = session.get(Orders, complaint.order_id)
+        if order:
+            order.status = OrderStatus.rejected
+            order.updated_at = str(datetime.now())
+            session.add(order)
+    
+    # Add history entry
+    history = ComplaintHistory(
+        complaint_id=complaint_id,
+        changed_by_user_id=manager_id,
+        new_status=ComplaintStatus.closed,
+        notes=notes or "Complaint closed" + (" (Order cancelled)" if cancel_order else ""),
+        updated_at=str(datetime.now())
+    )
+    session.add(history)
+    session.commit()
+    session.refresh(complaint)
+    
+    # Create system message
+    message = create_system_message(
+        session,
+        complaint.order_id,
+        manager_id,
+        MessageType.complaint,
+        {
+            "event": "status_change",
+            "entity": "complaint",
+            "id": complaint_id,
+            "old_status": old_status,
+            "new_status": ComplaintStatus.closed
+        }
+    )
+    
+    return complaint, message
 
 
 def get_complaint_by_id(session: Session, complaint_id: int) -> Complaints | None:

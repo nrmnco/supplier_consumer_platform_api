@@ -108,3 +108,33 @@ def check_user_can_access_order_chat(session: Session, user_id: int, order_id: i
             return True
     
     return False
+
+
+def create_system_message(
+    session: Session,
+    order_id: int,
+    user_id: int,
+    message_type: MessageType,
+    body_data: dict
+) -> Messages | None:
+    """Create a system message for an order chat"""
+    import json
+    
+    # Get the chat for this order
+    chat = get_chat_for_order(session, order_id)
+    if not chat:
+        # If chat doesn't exist (shouldn't happen for orders), try to create/get it
+        # But get_chat_for_order doesn't create. 
+        # We assume chat exists because it's created with order.
+        return None
+        
+    message = Messages(
+        chat_id=chat.chat_id,
+        sender_id=user_id,
+        type=message_type,
+        body=json.dumps(body_data)
+    )
+    session.add(message)
+    session.commit()
+    session.refresh(message)
+    return message

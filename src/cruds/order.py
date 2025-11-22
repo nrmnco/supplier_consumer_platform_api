@@ -195,13 +195,33 @@ def get_products_for_order(order_id: int, session: Session):
     return products_list
 
 
-def update_order_status(order_id: int, new_status: OrderStatus, session: Session):
+def update_order_status(order_id: int, new_status: OrderStatus, user_id: int, session: Session):
+    from src.cruds.chat import create_system_message
+    from src.models.messages import MessageType
+
     order = get_order_by_id(order_id, session)
     if not order:
         raise ValueError("Order not found")
 
+    old_status = order.status
     order.status = new_status
-    order.updated_at = datetime.now()
+    order.updated_at = str(datetime.now())
     session.commit()
     session.refresh(order)
-    return order
+    
+    # Create system message
+    message = create_system_message(
+        session,
+        order_id,
+        user_id,
+        MessageType.order,
+        {
+            "event": "status_change",
+            "entity": "order",
+            "id": order_id,
+            "old_status": old_status,
+            "new_status": new_status
+        }
+    )
+    
+    return order, message
