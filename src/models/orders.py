@@ -20,8 +20,8 @@ class Orders(SQLModel, table=True):
 
     status: OrderStatus = Field(default=OrderStatus.created, nullable=False)
 
-    created_at: str = Field(default=datetime.now(), nullable=False)
-    updated_at: str = Field(default=datetime.now(), nullable=False)
+    created_at: datetime = Field(default_factory=datetime.now, nullable=False)
+    updated_at: datetime = Field(default_factory=datetime.now, nullable=False)
 
     linking: "Linkings" = Relationship(back_populates="orders")
     consumer_staff: "Users" = Relationship(back_populates="orders")
