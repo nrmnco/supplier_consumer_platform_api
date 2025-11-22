@@ -32,7 +32,7 @@ async def create_new_order(order_data: OrderCreate, supplier_company_id: int, us
     if company.company_type == "supplier":
         raise HTTPException(status_code=403, detail="Supplier can not order")
     
-    if not check_if_linked(session, user.user_id, supplier_company_id):
+    if not check_if_linked(session, user.company_id, supplier_company_id):
         raise HTTPException(status_code=403, detail="Companies are not linked")
     
     linking = get_linking(session, user.company_id, supplier_company_id)
