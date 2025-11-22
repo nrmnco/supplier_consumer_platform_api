@@ -27,6 +27,6 @@ class OrderRead(SQLModel):
     consumer_staff_id: int
     total_price: int
     status: str
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 

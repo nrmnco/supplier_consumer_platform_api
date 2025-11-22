@@ -130,7 +130,7 @@ async def change_order_status(
                 "sender_name": f"{user.first_name} {user.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(order.order_id, broadcast_data)
             

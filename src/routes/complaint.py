@@ -85,7 +85,7 @@ async def create_complaint_for_order(
                 "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(order_id, broadcast_data)
             
@@ -428,7 +428,7 @@ async def escalate_complaint_route(
                 "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(complaint.order_id, broadcast_data)
             
@@ -490,7 +490,7 @@ async def claim_complaint_route(
                 "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(updated_complaint.order_id, broadcast_data)
             
@@ -588,7 +588,7 @@ async def resolve_complaint_route(
                 "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(updated_complaint.order_id, broadcast_data)
             
@@ -672,7 +672,7 @@ async def close_complaint_route(
                 "sender_name": f"{user_obj.first_name} {user_obj.last_name}",
                 "body": message.body,
                 "message_type": message.type,
-                "sent_at": message.sent_at
+                "sent_at": message.sent_at.isoformat()
             }
             await broadcast_order_message(updated_complaint.order_id, broadcast_data)
             

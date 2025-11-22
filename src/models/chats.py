@@ -8,7 +8,7 @@ class Chats(SQLModel, table=True):
     linking_id: int = Field(foreign_key="linkings.linking_id", nullable=False)
     order_id: int | None = Field(foreign_key="orders.order_id", default=None, nullable=True)
 
-    created_at: str = Field(default=datetime.now(), nullable=False)
+    created_at: datetime = Field(default_factory=datetime.now, nullable=False)
 
     order: "Orders" = Relationship(back_populates="chats")
     linking: "Linkings" = Relationship(back_populates="chats")

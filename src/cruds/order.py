@@ -43,8 +43,7 @@ def create_order(order_data: OrderCreate, linking_id: int, user_id: int, session
     # create order chat automatically
     order_chat = Chats(
         linking_id=linking_id,
-        order_id=order.order_id,
-        created_at=str(datetime.now())
+        order_id=order.order_id
     )
     session.add(order_chat)
     session.commit()
@@ -206,7 +205,7 @@ def update_order_status(order_id: int, new_status: OrderStatus, user_id: int, se
 
     old_status = order.status
     order.status = new_status
-    order.updated_at = str(datetime.now())
+    order.updated_at = datetime.now()
     session.commit()
     session.refresh(order)
     

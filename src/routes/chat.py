@@ -138,7 +138,7 @@ async def websocket_chat(websocket: WebSocket, linking_id: int):
                             "sender_name": f"{user.first_name} {user.last_name}",
                             "body": message.body,
                             "message_type": message.type,
-                            "sent_at": message.sent_at
+                            "sent_at": message.sent_at.isoformat()
                         }
                         
                         await broadcast_message(linking_id, broadcast_data, exclude_user_id=user.user_id)
@@ -146,7 +146,7 @@ async def websocket_chat(websocket: WebSocket, linking_id: int):
                         await websocket.send_json({
                             "type": "message_sent",
                             "message_id": message.message_id,
-                            "sent_at": message.sent_at
+                            "sent_at": message.sent_at.isoformat()
                         })
                     
             except WebSocketDisconnect:
@@ -321,7 +321,7 @@ async def websocket_order_chat(websocket: WebSocket, order_id: int):
                             "sender_name": f"{user.first_name} {user.last_name}",
                             "body": message.body,
                             "message_type": message.type,
-                            "sent_at": message.sent_at
+                            "sent_at": message.sent_at.isoformat()
                         }
                         
                         await broadcast_order_message(order_id, broadcast_data, exclude_user_id=user.user_id)
@@ -329,7 +329,7 @@ async def websocket_order_chat(websocket: WebSocket, order_id: int):
                         await websocket.send_json({
                             "type": "message_sent",
                             "message_id": message.message_id,
-                            "sent_at": message.sent_at
+                            "sent_at": message.sent_at.isoformat()
                         })
                     
             except WebSocketDisconnect:

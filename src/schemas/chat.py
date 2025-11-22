@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 from src.models.messages import MessageType
 
 class MessageResponse(BaseModel):
@@ -7,7 +8,7 @@ class MessageResponse(BaseModel):
     sender_id: int
     body: str
     type: MessageType
-    sent_at: str
+    sent_at: datetime
 
 class ChatHistoryResponse(BaseModel):
     chat_id: int
