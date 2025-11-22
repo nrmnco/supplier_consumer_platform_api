@@ -7,6 +7,7 @@ from src.cruds.user import get_user_by_email
 from src.cruds.complaint import (
     create_complaint,
     get_complaint_by_id,
+    get_complaint_by_order_id,
     get_complaints_for_consumer,
     get_complaints_for_salesman,
     get_escalated_complaints,
@@ -402,8 +403,8 @@ async def escalate_complaint_route(
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     
-    # Check if user is the assigned salesman
-    if complaint.assigned_to_salesman_id != user_obj.user_id:
+    # Check if user is the assigned salesman or owner of the supplier company
+    if user_obj.role != UserRole.owner and complaint.assigned_to_salesman_id != user_obj.user_id:
         raise HTTPException(
             status_code=403,
             detail="Only the assigned salesman can escalate this complaint"
@@ -543,15 +544,15 @@ async def resolve_complaint_route(
     
     # Check permissions based on complaint status
     if complaint.status == ComplaintStatus.open:
-        # Salesman can resolve open complaints
-        if complaint.assigned_to_salesman_id != user_obj.user_id:
+        # Salesman or owner can resolve open complaints
+        if user_obj.role != UserRole.owner and complaint.assigned_to_salesman_id != user_obj.user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Only the assigned salesman can resolve this complaint"
             )
     elif complaint.status == ComplaintStatus.in_progress:
-        # Manager can resolve in-progress complaints
-        if complaint.escalated_to_manager_id != user_obj.user_id:
+        # Manager or owner can resolve in-progress complaints
+        if user_obj.role != UserRole.owner and complaint.escalated_to_manager_id != user_obj.user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Only the assigned manager can resolve this complaint"
@@ -645,8 +646,8 @@ async def close_complaint_route(
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     
-    # Check if manager is assigned to this complaint
-    if complaint.escalated_to_manager_id != user_obj.user_id:
+    # Check if manager is assigned to this complaint or user is owner
+    if user_obj.role != UserRole.owner and complaint.escalated_to_manager_id != user_obj.user_id:
         raise HTTPException(
             status_code=403,
             detail="Only the assigned manager can close this complaint"
@@ -683,3 +684,109 @@ async def close_complaint_route(
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/order/{order_id}")
+async def get_complaint_by_order(
+    order_id: int,
+    user: dict = Depends(check_access_token),
+    session: Session = Depends(get_session)
+):
+    """
+    **Get complaint by order ID.**
+
+    Retrieves the complaint associated with a specific order, if one exists.
+    
+    **Permissions:**
+    - **Consumer users** can view complaints for orders they created
+    - **Supplier users** (Staff, Manager, Owner) can view complaints for orders in their company
+    
+    **Arguments:**
+    - `order_id`: The ID of the order
+    
+    **Returns:**
+    - The complaint object if found
+    
+    **Raises:**
+    - `404 Not Found`: If the user or order does not exist, or if no complaint exists for the order
+    - `403 Forbidden`: If the user does not have permission to view complaints for this order
+    """
+    user_obj = get_user_by_email(session, user['sub'])
+    if not user_obj:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if order exists
+    order = get_order_by_id(order_id, session)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get complaint for this order
+    complaint = get_complaint_by_order_id(session, order_id)
+    if not complaint:
+        raise HTTPException(status_code=404, detail=f"No complaint found for order {order_id}")
+    
+    # Check if user can access this complaint
+    if not check_user_can_access_complaint(session, user_obj.user_id, complaint.complaint_id):
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to view complaints for this order"
+        )
+    
+    return complaint
+
+
+@router.get("/order/{order_id}/exists")
+async def check_complaint_exists_for_order(
+    order_id: int,
+    user: dict = Depends(check_access_token),
+    session: Session = Depends(get_session)
+):
+    """
+    **Check if complaint exists for an order.**
+
+    A lightweight endpoint to check if a complaint exists for a specific order 
+    without returning the full complaint data. Useful for UI logic.
+    
+    **Permissions:**
+    - **Consumer users** can check complaints for orders they created
+    - **Supplier users** (Staff, Manager, Owner) can check complaints for orders in their company
+    
+    **Arguments:**
+    - `order_id`: The ID of the order
+    
+    **Returns:**
+    - `{"exists": true, "complaint_id": X}` if complaint exists
+    - `{"exists": false}` if no complaint exists
+    
+    **Raises:**
+    - `404 Not Found`: If the user or order does not exist
+    - `403 Forbidden`: If the user does not have permission to check complaints for this order
+    """
+    user_obj = get_user_by_email(session, user['sub'])
+    if not user_obj:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if order exists
+    order = get_order_by_id(order_id, session)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get complaint for this order
+    complaint = get_complaint_by_order_id(session, order_id)
+    
+    if not complaint:
+        # No complaint exists, return false
+        return {"exists": False}
+    
+    # Check if user can access this complaint
+    if not check_user_can_access_complaint(session, user_obj.user_id, complaint.complaint_id):
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to check complaints for this order"
+        )
+    
+    return {
+        "exists": True,
+        "complaint_id": complaint.complaint_id
+    }
+
