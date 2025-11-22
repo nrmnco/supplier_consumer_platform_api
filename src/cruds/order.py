@@ -136,6 +136,7 @@ def get_ordered_products_for_company(company_id: int, session: Session):
         if order:
             products_list.append({
                 "order_id": order.order_id,
+                'linking_id': order.linking_id,
                 "product_id": product.product_id,
                 "product_name": product.name,
                 "product_description": product.description,
