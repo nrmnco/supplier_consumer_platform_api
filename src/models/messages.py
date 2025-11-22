@@ -19,6 +19,6 @@ class Messages(SQLModel, table=True):
 
     type: MessageType = Field(default=MessageType.text, nullable=False)
     body: str = Field(nullable=False)
-    sent_at: str = Field(default=datetime.now(), nullable=False)
+    sent_at: datetime = Field(default_factory=datetime.now, nullable=False)
 
     chat: "Chats" = Relationship(back_populates="messages")
