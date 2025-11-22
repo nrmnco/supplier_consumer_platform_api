@@ -4,7 +4,7 @@ from typing import List
 
 from src.core.database import get_session
 from src.core.security import check_access_token
-from src.schemas.order import OrderCreate, OrderStatusUpdate
+from src.schemas.order import OrderCreate, OrderStatusUpdate, OrderRead
 from src.models.orders import OrderStatus
 from src.models.linkings import Linkings
 from src.cruds.order import (
@@ -13,7 +13,8 @@ from src.cruds.order import (
     get_order_by_id,
     update_order_status,
     get_ordered_products_for_company,
-    get_products_for_order
+    get_products_for_order,
+    get_orders_by_linking_id
 )
 from src.cruds.user import get_user_by_email
 from src.cruds.company import get_company_by_id
@@ -136,3 +137,17 @@ async def change_order_status(
         return order
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/linking/{linking_id}", response_model=List[OrderRead])
+def get_orders_by_linking(linking_id: int, user: str = Depends(check_access_token), session: Session = Depends(get_session)):
+    user = get_user_by_email(session, user['sub'])
+    
+    linking = session.get(Linkings, linking_id)
+    if not linking:
+        raise HTTPException(status_code=404, detail="Linking not found")
+    
+    if user.company_id != linking.consumer_company_id and user.company_id != linking.supplier_company_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+        
+    return get_orders_by_linking_id(linking_id, session)

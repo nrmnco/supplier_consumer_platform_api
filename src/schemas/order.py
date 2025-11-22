@@ -19,3 +19,14 @@ class OrderReadProduct(SQLModel):
     product_id: int
     quantity: int
     price: int
+
+
+class OrderRead(SQLModel):
+    order_id: int
+    linking_id: int
+    consumer_staff_id: int
+    total_price: int
+    status: str
+    created_at: str
+    updated_at: str
+

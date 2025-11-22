@@ -225,3 +225,9 @@ def update_order_status(order_id: int, new_status: OrderStatus, user_id: int, se
     )
     
     return order, message
+
+
+def get_orders_by_linking_id(linking_id: int, session: Session):
+    return session.exec(
+        select(Orders).where(Orders.linking_id == linking_id)
+    ).all()
