@@ -255,9 +255,6 @@ def close_complaint(
     if not complaint:
         raise ValueError("Complaint not found")
     
-    if complaint.status != ComplaintStatus.in_progress:
-        raise ValueError("Only in-progress complaints can be closed")
-    
     old_status = complaint.status
     complaint.status = ComplaintStatus.closed
     complaint.resolution_notes = notes or "Complaint closed"
@@ -305,6 +302,12 @@ def close_complaint(
 def get_complaint_by_id(session: Session, complaint_id: int) -> Complaints | None:
     """Get a complaint by ID"""
     return session.get(Complaints, complaint_id)
+
+
+def get_complaint_by_order_id(session: Session, order_id: int) -> Complaints | None:
+    """Get a complaint by order ID"""
+    statement = select(Complaints).where(Complaints.order_id == order_id)
+    return session.exec(statement).first()
 
 
 def get_complaints_for_consumer(session: Session, user_id: int):
