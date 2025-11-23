@@ -22,9 +22,19 @@ def create_mock_data():
         supplier_names = ["TechParts Inc.", "Global Foods", "BuildIt Materials", "Office Supplies Co.", "ChemWorks"]
         consumer_names = ["Gadget Store", "Restaurant Chain", "Construction Corp", "Corporate Office", "Lab Solutions"]
         
+        logo_urls = [
+            "https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/1a37b342-ca35-4ef5-bbf7-9ab93548ac0f.jpg",
+            "https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/058c400d-a105-41ab-94da-340ed4389348.png",
+            "https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/448653f7-077a-4e8f-b1cb-bab74a2cf760.jpg",
+            "https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/0095eb9e-1c3d-4669-8d8a-9c981f19524b.jpg",
+            "https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/5f758e52-a038-433a-a563-9dded62271b6.jpg"
+        ]
+        
         for i, name in enumerate(supplier_names):
             existing = session.exec(select(Companies).where(Companies.name == name)).first()
             if existing:
+                existing.logo_url = logo_urls[i % len(logo_urls)]
+                session.add(existing)
                 suppliers.append(existing)
                 continue
 
@@ -33,7 +43,8 @@ def create_mock_data():
                 location=f"Location {i}",
                 company_type=CompanyType.supplier,
                 status=CompanyStatus.active,
-                description=f"Supplier of {name}"
+                description=f"Supplier of {name}",
+                logo_url=logo_urls[i % len(logo_urls)]
             )
             session.add(company)
             suppliers.append(company)
@@ -41,6 +52,8 @@ def create_mock_data():
         for i, name in enumerate(consumer_names):
             existing = session.exec(select(Companies).where(Companies.name == name)).first()
             if existing:
+                existing.logo_url = logo_urls[i % len(logo_urls)]
+                session.add(existing)
                 consumers.append(existing)
                 continue
 
@@ -49,7 +62,8 @@ def create_mock_data():
                 location=f"Location {i+5}",
                 company_type=CompanyType.consumer,
                 status=CompanyStatus.active,
-                description=f"Consumer {name}"
+                description=f"Consumer {name}",
+                logo_url=logo_urls[i % len(logo_urls)]
             )
             session.add(company)
             consumers.append(company)
